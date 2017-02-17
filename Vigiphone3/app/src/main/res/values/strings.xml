@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Vigiphone3</string>
+    <string name="log_error">Error :</string>
+    <string name="error_fetching_data">Error while fetching data from the server</string>
+    <string name="title_activity_main">MainActivity</string>
+
+    <string name="navigation_drawer_open">Open navigation drawer</string>
+    <string name="navigation_drawer_close">Close navigation drawer</string>
+
+    <string name="action_settings">Settings</string>
+</resources>
