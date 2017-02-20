@@ -27,9 +27,12 @@ public class SplashScreen extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
+        startIntentAndFinish(new Intent(SplashScreen.this, MainActivity.class));
+
+/*
         if (shouldWeUpdate()) {
             NetworkService networkService = MyApplication.getNetworkServiceInstance();
-            /*call = networkService.getAllRecordingRows();
+            call = networkService.getAllRecordingRows();
             call.enqueue(new Callback<RecordingRows>() {
                 @Override
                 public void onResponse(Call<RecordingRows> call, Response<RecordingRows> response) {
@@ -40,7 +43,7 @@ public class SplashScreen extends AppCompatActivity {
                 public void onFailure(Call<RecordingRows> call, Throwable t) {
                     updateFailed(t);
                 }
-            });*/
+            });
 
             RecordingRow row = new RecordingRow();
             sendRecordings = networkService.sendRecordings(row);
@@ -59,7 +62,7 @@ public class SplashScreen extends AppCompatActivity {
         } else {
             startIntentAndFinish(new Intent(SplashScreen.this, MainActivity.class));
         }
-
+*/
     }
 
     public boolean shouldWeUpdate() {

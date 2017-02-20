@@ -11,10 +11,6 @@ import retrofit2.http.FormUrlEncoded;
 import retrofit2.http.GET;
 import retrofit2.http.POST;
 
-/**
- * Created by benjamin_saugues on 03/02/2017.
- */
-
 public interface NetworkService {
 
     @GET("recordings")

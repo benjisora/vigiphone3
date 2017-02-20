@@ -8,9 +8,6 @@ import com.raizlabs.android.dbflow.structure.BaseModel;
 
 import java.util.List;
 
-/**
- * Created by Benjisora on 17/02/2017.
- */
 @Table(database = MyDatabase.class)
 public class RecordingRow extends BaseModel {
 
@@ -62,13 +59,32 @@ public class RecordingRow extends BaseModel {
     private float proximity;
 
     @Column
-    private SensorThreeComponents accelerometer;
+    private float accelerometerX;
 
     @Column
-    private SensorThreeComponents gyroscope;
+    private float accelerometerY;
 
     @Column
-    private SensorThreeComponents magneticField;
+    private float accelerometerZ;
+
+    @Column
+    private float gyroscopeX;
+
+    @Column
+    private float gyroscopeY;
+
+    @Column
+    private float gyroscopeZ;
+
+    @Column
+    private float magneticFieldX;
+
+    @Column
+    private float magneticFieldY;
+
+    @Column
+    private float magneticFieldZ;
+
     //endregion
 
     //region getters/setters
@@ -192,29 +208,78 @@ public class RecordingRow extends BaseModel {
         this.proximity = proximity;
     }
 
-    public SensorThreeComponents getAccelerometer() {
-        return accelerometer;
+    public float getAccelerometerX() {
+        return accelerometerX;
     }
 
-    public void setAccelerometer(SensorThreeComponents accelerometer) {
-        this.accelerometer = accelerometer;
+    public void setAccelerometerX(float accelerometerX) {
+        this.accelerometerX = accelerometerX;
     }
 
-    public SensorThreeComponents getGyroscope() {
-        return gyroscope;
+    public float getAccelerometerY() {
+        return accelerometerY;
     }
 
-    public void setGyroscope(SensorThreeComponents gyroscope) {
-        this.gyroscope = gyroscope;
+    public void setAccelerometerY(float accelerometerY) {
+        this.accelerometerY = accelerometerY;
     }
 
-    public SensorThreeComponents getMagneticField() {
-        return magneticField;
+    public float getAccelerometerZ() {
+        return accelerometerZ;
     }
 
-    public void setMagneticField(SensorThreeComponents magneticField) {
-        this.magneticField = magneticField;
+    public void setAccelerometerZ(float accelerometerZ) {
+        this.accelerometerZ = accelerometerZ;
     }
+
+    public float getGyroscopeX() {
+        return gyroscopeX;
+    }
+
+    public void setGyroscopeX(float gyroscopeX) {
+        this.gyroscopeX = gyroscopeX;
+    }
+
+    public float getGyroscopeY() {
+        return gyroscopeY;
+    }
+
+    public void setGyroscopeY(float gyroscopeY) {
+        this.gyroscopeY = gyroscopeY;
+    }
+
+    public float getGyroscopeZ() {
+        return gyroscopeZ;
+    }
+
+    public void setGyroscopeZ(float gyroscopeZ) {
+        this.gyroscopeZ = gyroscopeZ;
+    }
+
+    public float getMagneticFieldX() {
+        return magneticFieldX;
+    }
+
+    public void setMagneticFieldX(float magneticFieldX) {
+        this.magneticFieldX = magneticFieldX;
+    }
+
+    public float getMagneticFieldY() {
+        return magneticFieldY;
+    }
+
+    public void setMagneticFieldY(float magneticFieldY) {
+        this.magneticFieldY = magneticFieldY;
+    }
+
+    public float getMagneticFieldZ() {
+        return magneticFieldZ;
+    }
+
+    public void setMagneticFieldZ(float magneticFieldZ) {
+        this.magneticFieldZ = magneticFieldZ;
+    }
+
     //endregion
 
 }

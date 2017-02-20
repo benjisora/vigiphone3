@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="General">
+
+        <EditTextPreference
+            android:hint="https://example.ngrok.io"
+            android:key="url"
+            android:summary="Please provide the server address you want to use."
+            android:title="Server Address" />
+
+        <CheckBoxPreference
+            android:defaultValue="false"
+            android:key="wifi"
+            android:summary="This will allow the application to communicate with the server over wifi only."
+            android:title="Send Data Over Wifi Only" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Recording">
+
+        <EditTextPreference
+            android:hint="default_table"
+            android:key="RecordingTable"
+            android:summary="Please provide the recording table you want to fill."
+            android:title="Recording Table" />
+
+        <PreferenceScreen
+            android:persistent="false"
+            android:title="Sensors to register"
+            android:summary="Decide on which sensors you want to register">
+
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="accelerometer"
+                android:title="Accelerometer" />
+
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="gyroscope"
+                android:title="Gyroscope" />
+
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="magneticField"
+                android:title="Magnetic Field" />
+
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="light"
+                android:title="Light" />
+
+            <CheckBoxPreference
+                android:defaultValue="true"
+                android:key="proximity"
+                android:title="Proximity" />
+
+        </PreferenceScreen>
+
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Map">
+
+        <EditTextPreference
+            android:hint="table_emitters"
+            android:key="MapTable"
+            android:summary="Please provide the emitters table you want to fetch from."
+            android:title="Emitters Table" />
+
+        <ListPreference
+            android:defaultValue="1"
+            android:entries="@array/listArray"
+            android:entryValues="@array/listValues"
+            android:key="downloadType"
+            android:summary="Select the API you want to get the emitters to be fetch from."
+            android:title="API Choice" />
+
+    </PreferenceCategory>
+</PreferenceScreen>

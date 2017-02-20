@@ -1,0 +1,355 @@
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.cstb.vigiphone3.fragment.RecordingFragment">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin">
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/cardview_emitter"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:layout_marginBottom="16dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingBottom="10dp"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingTop="10dp">
+
+                <TextView
+                    android:id="@+id/emitter_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:gravity="center"
+                    android:paddingBottom="10dp"
+                    android:text="Emitter"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/cidlac_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/emitter_section"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="CID - LAC" />
+
+                <TextView
+                    android:id="@+id/cidlac_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/emitter_section"
+                    android:layout_toEndOf="@id/cidlac_label"
+                    android:gravity="right"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/mccmnc_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/cidlac_label"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="MCC - MNC" />
+
+                <TextView
+                    android:id="@+id/mccmnc_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/cidlac_text"
+                    android:layout_toEndOf="@id/mccmnc_label"
+                    android:gravity="right"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/op_name_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/mccmnc_label"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Operator" />
+
+                <TextView
+                    android:id="@+id/op_name_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/mccmnc_text"
+                    android:layout_toEndOf="@id/op_name_label"
+                    android:gravity="right"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/type_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/op_name_label"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Network Type" />
+
+                <TextView
+                    android:id="@+id/type_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/op_name_text"
+                    android:layout_toEndOf="@id/type_label"
+                    android:gravity="right"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/strengh_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/type_label"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Signal Strengh (dBm)" />
+
+                <TextView
+                    android:id="@+id/strengh_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/type_text"
+                    android:layout_toEndOf="@id/strengh_label"
+                    android:gravity="right"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/neighbours_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/strengh_label"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Neighbours (2G)" />
+
+                <TextView
+                    android:id="@+id/neighbours_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/strengh_text"
+                    android:layout_toEndOf="@id/neighbours_label"
+                    android:gravity="right"
+                    android:text="" />
+
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/cardview_gps"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cardview_emitter"
+            android:layout_marginBottom="16dp">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingBottom="10dp"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingTop="10dp">
+
+                <TextView
+                    android:id="@+id/gps_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:gravity="center"
+                    android:paddingBottom="10dp"
+                    android:text="Position"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/latitude_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/gps_section"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Latitude" />
+
+                <TextView
+                    android:id="@+id/latitude_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/gps_section"
+                    android:layout_toEndOf="@id/latitude_label"
+                    android:gravity="right"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/longitude_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/latitude_label"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Longitude" />
+
+                <TextView
+                    android:id="@+id/longitude_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/latitude_text"
+                    android:layout_toEndOf="@id/longitude_label"
+                    android:gravity="right"
+                    android:text="" />
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/cardview_sensor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cardview_gps">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingBottom="10dp"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingTop="10dp">
+
+                <TextView
+                    android:id="@+id/sensor_section"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentTop="true"
+                    android:gravity="center"
+                    android:paddingBottom="10dp"
+                    android:text="Sensors"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/accelerometer_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/sensor_section"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Accelerometer" />
+
+                <TextView
+                    android:id="@+id/accelerometer_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/sensor_section"
+                    android:layout_toEndOf="@id/accelerometer_label"
+                    android:gravity="right"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/gyroscope_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/accelerometer_label"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Gyroscope" />
+
+                <TextView
+                    android:id="@+id/gyroscope_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/accelerometer_text"
+                    android:layout_toEndOf="@id/gyroscope_label"
+                    android:gravity="right"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/magneticField_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/gyroscope_label"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Magnetic Field" />
+
+                <TextView
+                    android:id="@+id/magneticField_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/gyroscope_text"
+                    android:layout_toEndOf="@id/magneticField_label"
+                    android:gravity="right"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/light_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/magneticField_label"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Light" />
+
+                <TextView
+                    android:id="@+id/light_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/magneticField_text"
+                    android:layout_toEndOf="@id/light_label"
+                    android:gravity="right"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/proximity_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/light_label"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="Proximity" />
+
+                <TextView
+                    android:id="@+id/proximity_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/light_text"
+                    android:layout_toEndOf="@id/proximity_label"
+                    android:gravity="right"
+                    android:text="" />
+
+
+            </RelativeLayout>
+
+        </android.support.v7.widget.CardView>
+
+    </RelativeLayout>
+
+</ScrollView>

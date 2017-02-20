@@ -1,7 +1,10 @@
 package com.cstb.vigiphone3.data.database;
 
 import android.app.Application;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 
 import com.cstb.vigiphone3.network.NetworkService;
@@ -13,9 +16,6 @@ import com.raizlabs.android.dbflow.config.FlowManager;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
-/**
- * Created by Benjisora on 17/02/2017.
- */
 
 public class MyApplication extends Application {
 
@@ -45,4 +45,5 @@ public class MyApplication extends Application {
     public static NetworkService getNetworkServiceInstance() {
         return getRetrofitInstance().create(NetworkService.class);
     }
+
 }

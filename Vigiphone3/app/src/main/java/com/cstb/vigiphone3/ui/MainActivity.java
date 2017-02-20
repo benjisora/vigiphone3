@@ -16,6 +16,9 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.cstb.vigiphone3.R;
+import com.cstb.vigiphone3.fragment.MapsFragment;
+import com.cstb.vigiphone3.fragment.RecordingFragment;
+import com.cstb.vigiphone3.fragment.SensorsFragment;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -46,11 +49,11 @@ public class MainActivity extends AppCompatActivity
 
         navigationView.setNavigationItemSelectedListener(this);
 
-        Class fragmentClass = SchedulesFragment.class;
+        Class fragmentClass = RecordingFragment.class;
         try {
             loadFragment(fragmentClass);
         } catch (Exception e) {
-            Log.e("RetrofitError", getString(R.string.log_error), e);
+            Log.e("loadFragment Error", getString(R.string.log_error), e);
         }
 
     }
@@ -74,7 +77,7 @@ public class MainActivity extends AppCompatActivity
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
-        if (id == R.id.action_refresh) {
+        if (id == R.id.action_settings) {
             return true;
         }
 
@@ -87,21 +90,24 @@ public class MainActivity extends AppCompatActivity
         Intent intent = null;
 
         switch (item.getItemId()) {
-            case R.id.nav_schedules:
-                fragmentClass = SchedulesFragment.class;
+            case R.id.nav_record:
+                fragmentClass = RecordingFragment.class;
+                break;
+            case R.id.nav_sensors:
+                fragmentClass = SensorsFragment.class;
                 break;
             case R.id.nav_map:
                 fragmentClass = MapsFragment.class;
                 break;
-            case R.id.nav_favorites:
-                fragmentClass = FavoritesFragment.class;
+            case R.id.nav_camera:
+                fragmentClass = RecordingFragment.class;
                 break;
             case R.id.nav_settings:
                 intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);
                 break;
             default:
-                fragmentClass = SchedulesFragment.class;
+                fragmentClass = RecordingFragment.class;
                 break;
         }
 

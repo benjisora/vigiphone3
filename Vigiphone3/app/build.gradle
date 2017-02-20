@@ -1,7 +1,6 @@
 apply plugin: 'com.android.application'
 def dbflow_version = "4.0.0-beta5"
 
-
 android {
     compileSdkVersion 25
     buildToolsVersion "25.0.0"
@@ -51,5 +50,8 @@ dependencies {
     compile 'com.squareup.retrofit2:converter-gson:2.1.0'
 
     //Google Maps
-    compile 'com.google.android.gms:play-services:10.0.1'
+    compile 'com.google.android.gms:play-services:10.2.0'
+
+    //Material Rey
+    compile 'com.github.rey5137:material:1.2.4'
 }
