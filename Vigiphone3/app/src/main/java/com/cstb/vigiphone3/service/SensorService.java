@@ -11,7 +11,10 @@ import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.widget.Toast;
+
+import com.cstb.vigiphone3.R;
 
 public class SensorService extends Service implements SensorEventListener {
 
@@ -24,7 +27,7 @@ public class SensorService extends Service implements SensorEventListener {
 
     @Override
     public void onCreate() {
-        Toast.makeText(this, "Service Created", Toast.LENGTH_SHORT).show();
+        Log.d("SensorService", "Service started");
     }
 
     @Override
@@ -47,6 +50,7 @@ public class SensorService extends Service implements SensorEventListener {
 
     @Override
     public void onDestroy() {
+        Log.d("SensorService", "Service stopped");
         sensorManager.unregisterListener(this);
     }
 

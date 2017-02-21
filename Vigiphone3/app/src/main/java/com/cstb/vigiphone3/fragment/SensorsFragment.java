@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.hardware.Sensor;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -15,7 +16,8 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import com.cstb.vigiphone3.R;
-import com.cstb.vigiphone3.service.SensorService;
+
+import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -66,8 +68,9 @@ public class SensorsFragment extends Fragment {
 
     //endregion
 
-    public SensorsFragment() {
-    }
+    private int cidTapCount = 0;
+    private int Cid = 0;
+    private int Lac = 0;
 
     private BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
         @Override
@@ -77,6 +80,30 @@ public class SensorsFragment extends Fragment {
             updateAccordingView(type, value);
         }
     };
+    private BroadcastReceiver mLocationReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Location value = (Location) intent.getExtras().get("value");
+            updateAccordingView(value);
+        }
+    };
+    private BroadcastReceiver mSignalReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            int Cid = (int) intent.getExtras().get("cid");
+            int Lac = (int) intent.getExtras().get("lac");
+            int Mcc = (int) intent.getExtras().get("mcc");
+            int Mnc = (int) intent.getExtras().get("mnc");
+            String networkName = (String) intent.getExtras().get("name");
+            String networkType = (String) intent.getExtras().get("type");
+            String neighbours = (String) intent.getExtras().get("neighbours");
+            int Strength = (int) intent.getExtras().get("strength");
+            updateAccordingView(Cid, Lac, Mcc, Mnc, networkName, networkType, neighbours, Strength);
+        }
+    };
+
+    public SensorsFragment() {
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -84,8 +111,7 @@ public class SensorsFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_sensor, container, false);
         ButterKnife.bind(this, view);
 
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mSensorReceiver, new IntentFilter("SensorChanged"));
-        getActivity().startService(new Intent(getActivity(), SensorService.class));
+        registerReceivers();
 
         return view;
     }
@@ -96,23 +122,17 @@ public class SensorsFragment extends Fragment {
         switch (type) {
 
             case Sensor.TYPE_ACCELEROMETER:
-                text = String.valueOf(value[0]) + " / "
-                        + String.valueOf(value[1]) + " / "
-                        + String.valueOf(value[2]);
+                text = String.format(Locale.ENGLISH, "%.3f / %.3f / %.3f", value[0], value[1], value[2]);
                 accelerometerText.setText(text);
                 break;
 
             case Sensor.TYPE_GYROSCOPE:
-                text = String.valueOf(value[0]) + " / "
-                        + String.valueOf(value[1]) + " / "
-                        + String.valueOf(value[2]);
+                text = String.format(Locale.ENGLISH, "%.3f / %.3f / %.3f", value[0], value[1], value[2]);
                 gyroscopeText.setText(text);
                 break;
 
             case Sensor.TYPE_MAGNETIC_FIELD:
-                text = String.valueOf(value[0]) + " / "
-                        + String.valueOf(value[1]) + " / "
-                        + String.valueOf(value[2]);
+                text = String.format(Locale.ENGLISH, "%.3f / %.3f / %.3f", value[0], value[1], value[2]);
                 magneticFieldText.setText(text);
                 break;
 
@@ -128,9 +148,76 @@ public class SensorsFragment extends Fragment {
         }
     }
 
+    public void updateAccordingView(Location value) {
+        String text = String.format(Locale.ENGLISH, "%.6f", value.getLatitude());
+        latitudeText.setText(text);
+        text = String.format(Locale.ENGLISH, "%.6f", value.getLongitude());
+        longitudeText.setText(text);
+    }
+
+    public void updateAccordingView(int CID, int LAC, int MCC, int MNC, String networkName, String networkType, String neighbours, int Strength) {
+        Cid = CID;
+        Lac = LAC;
+        changeCidDisplay();
+        String text;
+        text = String.valueOf(MCC) + " / " + String.valueOf(MNC);
+        mccMncText.setText(text);
+        opNameText.setText(networkName);
+        typeText.setText(networkType);
+        neighboursText.setText(neighbours);
+        text = String.valueOf(Strength);
+        strenghText.setText(text);
+    }
+
     @OnClick(R.id.cidlac_label)
     public void changeDisplay() {
-
+        cidTapCount++;
+        changeCidDisplay();
     }
+
+    private void changeCidDisplay() {
+        switch (cidTapCount % 3) {
+            case 0:
+                cidLacText.setText(String.valueOf(Cid) + "/" + String.valueOf(Lac));
+                break;
+            case 1:
+                cidLacText.setText(String.valueOf(Cid / 65536) + "x2\u00B9\u2076+" + String.valueOf(Cid % 65535) + "/" + String.valueOf(Lac));
+                break;
+            case 2:
+                cidLacText.setText("0x" + String.valueOf(Integer.toString(Cid, 16)) + "/" + String.valueOf(Lac));
+                break;
+        }
+    }
+
+    private void registerReceivers() {
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mLocationReceiver, new IntentFilter("LocationChanged"));
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mSensorReceiver, new IntentFilter("SensorChanged"));
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mSignalReceiver, new IntentFilter("SignalChanged"));
+    }
+
+    private void unregisterReceivers() {
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mLocationReceiver);
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mSensorReceiver);
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mSignalReceiver);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        registerReceivers();
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        unregisterReceivers();
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        unregisterReceivers();
+    }
+
 
 }

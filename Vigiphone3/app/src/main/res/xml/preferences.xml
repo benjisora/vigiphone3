@@ -11,7 +11,7 @@
 
         <CheckBoxPreference
             android:defaultValue="false"
-            android:key="wifi"
+            android:key="wifiOnly"
             android:summary="This will allow the application to communicate with the server over wifi only."
             android:title="Send Data Over Wifi Only" />
 

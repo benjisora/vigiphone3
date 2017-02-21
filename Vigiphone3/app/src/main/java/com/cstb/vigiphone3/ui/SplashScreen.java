@@ -64,7 +64,7 @@ public class SplashScreen extends AppCompatActivity {
         }
 */
     }
-
+/*
     public boolean shouldWeUpdate() {
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         return SP.getBoolean("udpates", true);
@@ -88,12 +88,12 @@ public class SplashScreen extends AppCompatActivity {
 
         startIntentAndFinish(new Intent(SplashScreen.this, MainActivity.class));
     }
-
+*/
     public void startIntentAndFinish(Intent intent) {
         startActivity(intent);
         finish();
     }
-
+/*
     @Override
     public void onBackPressed() {
         super.onBackPressed();
@@ -104,4 +104,5 @@ public class SplashScreen extends AppCompatActivity {
             sendRecordings.cancel();
         }
     }
+*/
 }

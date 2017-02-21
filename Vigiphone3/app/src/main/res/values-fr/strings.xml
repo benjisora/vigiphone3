@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vigiphone3</string>
+    <string name="accelerometer">Accéléromètre</string>
+    <string name="action_settings">Paramètres</string>
+    <string name="change_the_recording_duration">Changer la durée d\'enregistrement</string>
+    <string name="change_the_recording_step">Changer le pas d\'enregistrement</string>
+    <string name="change_the_transfer_threshold">Changer le seuil de transfert</string>
+    <string name="cid_lac">CID - LAC</string>
+    <string name="current_recording_duration">Durée actuelle d\'enregistrement :</string>
+    <string name="current_recording_step">Pas d\'enregistrement actuel :</string>
+    <string name="current_threshold">seuil de transfert actuel :</string>
+    <string name="database_size">Taille de la database :</string>
+    <string name="emitter">Emetteur</string>
+    <string name="error_fetching_data">Erreur lors de la récupération de données depuis le serveur</string>
+    <string name="file">Fichier</string>
+    <string name="filename">nom du fichier</string>
+    <string name="gyroscope">Gyroscope</string>
+    <string name="undefined">Indéfini</string>
+    <string name="latitude">Latitude</string>
+    <string name="light">Lumière</string>
+    <string name="limited">Défini</string>
+    <string name="log_error">Erreur :</string>
+    <string name="longitude">Longitude</string>
+    <string name="magnetic_field">Champ Magn.</string>
+    <string name="mcc_mnc">MCC - MNC</string>
+    <string name="neighbours_2g">Voisins (2G)</string>
+    <string name="network_type">Type de réseau</string>
+    <string name="operator">Opérateur</string>
+    <string name="position">Position</string>
+    <string name="proximity">Proximité</string>
+    <string name="recording_time">Temps d\'enregistrement</string>
+    <string name="recording_step">Pas d\'enregistrement</string>
+    <string name="save_destination">Emplacement de sauvegarde</string>
+    <string name="sensors">Capteurs</string>
+    <string name="server">Serveur</string>
+    <string name="signal_strengh_dbm">Force du signal (dBm)</string>
+    <string name="start">Démarrer</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="transfer_threshold">Seuil de Tranfert</string>
+    <string name="map_of_emitters">Carte d\'émetteurs</string>
+    <string name="other">Autre</string>
+    <string name="start_recording">Lancer un enregistrement</string>
+    <string name="watch_the_sensors">Observer les capteurs</string>
+    <string name="camera_mode">Mode caméra</string>
+    <string name="fetching">acquisition...</string>
+</resources>

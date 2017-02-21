@@ -18,6 +18,7 @@ import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.widget.Toast;
 
 public class LocationService extends Service implements LocationListener {
@@ -32,16 +33,19 @@ public class LocationService extends Service implements LocationListener {
 
     @Override
     public void onCreate() {
-        Toast.makeText(this, "Service Created", Toast.LENGTH_SHORT).show();
+        Log.d("LocationService", "Service started");
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            previousLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         }
-        previousLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+        if(previousLocation!= null) {
+            sendMessageToActivity(previousLocation);
+        }
         return Service.START_STICKY;
     }
 
@@ -70,6 +74,7 @@ public class LocationService extends Service implements LocationListener {
 
     @Override
     public void onDestroy() {
+        Log.d("LocationService", "Service stopped");
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             locationManager.removeUpdates(this);
         }

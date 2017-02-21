@@ -1,8 +1,10 @@
 package com.cstb.vigiphone3.data.database;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
 
 import com.cstb.vigiphone3.data.model.RecordingRow;
 import com.cstb.vigiphone3.data.model.RecordingRow_Table;
@@ -34,9 +36,22 @@ public class Utils {
                 .querySingle();
     }
 
-    public static boolean isWifiConnected(Context context){
+    private static boolean isWifiEnabled(Context context){
         ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
         NetworkInfo netInfo = connectivityManager.getActiveNetworkInfo();
         return netInfo != null && netInfo.getType() == ConnectivityManager.TYPE_WIFI && netInfo.isConnected();
+    }
+
+    private static boolean isDataEnabled(Context context){
+        ConnectivityManager connectivityManager = (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo netInfo = connectivityManager.getActiveNetworkInfo();
+        return netInfo != null && netInfo.getType() == ConnectivityManager.TYPE_MOBILE && netInfo.isConnected();
+    }
+
+    public static boolean canWeConnect(Context context) {
+        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(context);
+        boolean test = SP.getBoolean("wifiOnly", false);
+
+        return test && isWifiEnabled(context) || (!test && (isWifiEnabled(context) || isDataEnabled(context)));
     }
 }
