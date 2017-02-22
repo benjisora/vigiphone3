@@ -1,5 +1,6 @@
 package com.cstb.vigiphone3.service;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
@@ -22,6 +23,7 @@ public class SignalService extends Service {
 
     private TelephonyManager telephonyManager;
     private MyPhoneStateListener myPhoneStateListener;
+    private String deviceId = "";
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -33,10 +35,12 @@ public class SignalService extends Service {
         Log.d("SignalService", "Service started");
     }
 
+    @SuppressLint("HardwareIds")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         myPhoneStateListener = new MyPhoneStateListener();
+        deviceId = telephonyManager.getDeviceId();
         telephonyManager.listen(myPhoneStateListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         initializeData();
         return Service.START_STICKY;
@@ -48,8 +52,9 @@ public class SignalService extends Service {
         telephonyManager.listen(new MyPhoneStateListener(), PhoneStateListener.LISTEN_NONE);
     }
 
-    public void sendMessageToActivity(int CID, int LAC, int MCC, int MNC, String networkName, String networkType, String neighbours, int strength) {
+    public void sendMessageToActivity(String deviceId, int CID, int LAC, int MCC, int MNC, String networkName, String networkType, String neighbours, int strength) {
         Intent intent = new Intent("SignalChanged");
+        intent.putExtra("deviceId", deviceId);
         intent.putExtra("cid", CID);
         intent.putExtra("lac", LAC);
         intent.putExtra("mcc", MCC);
@@ -63,7 +68,7 @@ public class SignalService extends Service {
 
     void initializeData() {
         myPhoneStateListener.setCellInfo();
-        sendMessageToActivity(myPhoneStateListener.CID, myPhoneStateListener.LAC, myPhoneStateListener.MCC, myPhoneStateListener.MNC, myPhoneStateListener.networkName, myPhoneStateListener.networkType, myPhoneStateListener.neighbours, myPhoneStateListener.strength);
+        sendMessageToActivity(deviceId, myPhoneStateListener.CID, myPhoneStateListener.LAC, myPhoneStateListener.MCC, myPhoneStateListener.MNC, myPhoneStateListener.networkName, myPhoneStateListener.networkType, myPhoneStateListener.neighbours, myPhoneStateListener.strength);
     }
 
     public class MyPhoneStateListener extends PhoneStateListener {
@@ -120,14 +125,14 @@ public class SignalService extends Service {
         public void onCellLocationChanged(CellLocation location) {
             super.onCellLocationChanged(location);
             setCellInfo();
-            sendMessageToActivity(CID, LAC, MCC, MNC, networkName, networkType, neighbours, strength);
+            sendMessageToActivity(deviceId, CID, LAC, MCC, MNC, networkName, networkType, neighbours, strength);
         }
 
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {
             super.onSignalStrengthsChanged(signalStrength);
             setCellInfo();
             setStrength(signalStrength);
-            sendMessageToActivity(CID, LAC, MCC, MNC, networkName, networkType, neighbours, strength);
+            sendMessageToActivity(deviceId, CID, LAC, MCC, MNC, networkName, networkType, neighbours, strength);
         }
 
         private String getNetworkTypeFromInt(int type) {

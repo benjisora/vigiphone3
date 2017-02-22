@@ -1,6 +1,5 @@
 package com.cstb.vigiphone3.ui;
 
-import android.app.Service;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -21,10 +20,7 @@ import com.cstb.vigiphone3.R;
 import com.cstb.vigiphone3.fragment.MapsFragment;
 import com.cstb.vigiphone3.fragment.RecordingFragment;
 import com.cstb.vigiphone3.fragment.SensorsFragment;
-import com.cstb.vigiphone3.service.LocationService;
-import com.cstb.vigiphone3.service.SensorService;
 import com.cstb.vigiphone3.service.ServiceManager;
-import com.cstb.vigiphone3.service.SignalService;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -44,8 +40,7 @@ public class MainActivity extends ActivityManagePermission
     @BindView(R.id.nav_view)
     NavigationView navigationView;
 
-
-    ServiceManager serviceManager;
+    private ServiceManager serviceManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,24 +49,13 @@ public class MainActivity extends ActivityManagePermission
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
 
-        askCompactPermissions(new String[]{PermissionUtils.Manifest_ACCESS_FINE_LOCATION, PermissionUtils.Manifest_READ_PHONE_STATE, PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE}, new PermissionResult() {
-            @Override
-            public void permissionGranted() {
-                serviceManager = new ServiceManager(MainActivity.this);
-                serviceManager.registerReceivers();
-                serviceManager.startServices();
-            }
-
-            @Override
-            public void permissionDenied() {
-                showPermissionDialog("Permissions Denied", "Location permission is needed to display position. Please allow the permission in the settings");
-            }
-
-            @Override
-            public void permissionForeverDenied() {
-                showPermissionDialog("Permissions Denied", "Location permission is needed to display position. Please allow the permission in the settings");
-            }
-        });
+        if (!isPermissionsGranted(MainActivity.this, new String[]{PermissionUtils.Manifest_ACCESS_FINE_LOCATION, PermissionUtils.Manifest_READ_PHONE_STATE, PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE})) {
+            askForNeededPermissions(getString(R.string.permissions_needed_title), getString(R.string.permissions_needed_text));
+        } else {
+            serviceManager = new ServiceManager(MainActivity.this);
+            serviceManager.registerReceivers();
+            serviceManager.startServices();
+        }
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
                 this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close);
@@ -81,7 +65,7 @@ public class MainActivity extends ActivityManagePermission
         navigationView.setNavigationItemSelectedListener(this);
 
         navigationView.setCheckedItem(R.id.nav_record);
-        toolbar.setTitle("Recording");
+        toolbar.setTitle(R.string.recording_fragment_title);
         Class fragmentClass = RecordingFragment.class;
         try {
             loadFragment(fragmentClass);
@@ -94,8 +78,8 @@ public class MainActivity extends ActivityManagePermission
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        serviceManager.stopServices();
         serviceManager.unregisterReceivers();
+        serviceManager.stopServices();
     }
 
     @Override
@@ -103,7 +87,7 @@ public class MainActivity extends ActivityManagePermission
         if (drawer.isDrawerOpen(GravityCompat.START)) {
             drawer.closeDrawer(GravityCompat.START);
         } else {
-            super.onBackPressed();
+            moveTaskToBack(true);
         }
     }
 
@@ -131,27 +115,27 @@ public class MainActivity extends ActivityManagePermission
 
         switch (item.getItemId()) {
             case R.id.nav_record:
-                toolbar.setTitle("Recording");
+                toolbar.setTitle(R.string.recording_fragment_title);
                 fragmentClass = RecordingFragment.class;
                 break;
             case R.id.nav_sensors:
-                toolbar.setTitle("Sensors");
+                toolbar.setTitle(R.string.sensors_fragment_title);
                 fragmentClass = SensorsFragment.class;
                 break;
             case R.id.nav_map:
-                toolbar.setTitle("Map");
+                toolbar.setTitle(R.string.map_fragment_title);
                 fragmentClass = MapsFragment.class;
                 break;
             //case R.id.nav_camera:
-                //toolbar.setTitle("Camera");
-                //fragmentClass = RecordingFragment.class;
-                //break;
+            //toolbar.setTitle("Camera");
+            //fragmentClass = RecordingFragment.class;
+            //break;
             case R.id.nav_settings:
                 intent = new Intent(MainActivity.this, SettingsActivity.class);
                 startActivity(intent);
                 break;
             default:
-                toolbar.setTitle("Recording");
+                toolbar.setTitle(R.string.recording_fragment_title);
                 fragmentClass = RecordingFragment.class;
                 break;
         }
@@ -180,16 +164,48 @@ public class MainActivity extends ActivityManagePermission
         }
     }
 
-    private void showPermissionDialog(String title, String text){
+    private void showPermissionDialogDenied(String title, String text) {
         new MaterialDialog.Builder(this)
                 .title(title)
                 .content(text)
-                .positiveText("Settings")
+                .positiveText(R.string.settings_button_text)
                 .cancelable(false)
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
                         openSettingsApp(MainActivity.this);
+                    }
+                })
+                .show();
+    }
+
+    private void askForNeededPermissions(String title, String text) {
+        new MaterialDialog.Builder(this)
+                .title(title)
+                .content(text)
+                .positiveText(android.R.string.ok)
+                .cancelable(false)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        askCompactPermissions(new String[]{PermissionUtils.Manifest_ACCESS_FINE_LOCATION, PermissionUtils.Manifest_READ_PHONE_STATE, PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE}, new PermissionResult() {
+                            @Override
+                            public void permissionGranted() {
+                                serviceManager = new ServiceManager(MainActivity.this);
+                                serviceManager.registerReceivers();
+                                serviceManager.startServices();
+                            }
+
+                            @Override
+                            public void permissionDenied() {
+                                showPermissionDialogDenied(getString(R.string.permissions_denied), getString(R.string.permissions_denied_text));
+                            }
+
+                            @Override
+                            public void permissionForeverDenied() {
+                                showPermissionDialogDenied(getString(R.string.permissions_permanently_denied), getString(R.string.permissions_permanently_denied_text));
+                            }
+                        });
                     }
                 })
                 .show();

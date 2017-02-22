@@ -3,6 +3,7 @@ package com.cstb.vigiphone3.ui;
 import android.os.Bundle;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceFragment;
+import android.support.v7.widget.Toolbar;
 
 import com.cstb.vigiphone3.R;
 

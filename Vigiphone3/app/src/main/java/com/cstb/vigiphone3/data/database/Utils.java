@@ -23,13 +23,13 @@ public class Utils {
         return instanceUtils;
     }
 
-    public List<RecordingRow> getAllPaths(){
+    public List<RecordingRow> getAllRecordingRows(){
         return SQLite.select()
                 .from(RecordingRow.class)
                 .queryList();
     }
 
-    public RecordingRow getPath(int id){
+    public RecordingRow getRecordingRow(int id){
         return SQLite.select()
                 .from(RecordingRow.class)
                 .where(RecordingRow_Table.id.eq(id))

@@ -12,9 +12,12 @@ import java.util.List;
 public class RecordingRow extends BaseModel {
 
     //region variables
-    @PrimaryKey
+    @PrimaryKey(autoincrement = true)
     @Column
     private long id;
+
+    @Column
+    private String imei;
 
     @Column
     private String model;
@@ -23,10 +26,10 @@ public class RecordingRow extends BaseModel {
     private String date;
 
     @Column
-    private long latitude;
+    private double latitude;
 
     @Column
-    private long longitude;
+    private double longitude;
 
     @Column
     private int CID;
@@ -47,7 +50,7 @@ public class RecordingRow extends BaseModel {
     private String name;
 
     @Column
-    private int value;
+    private int strength;
 
     @Column
     private String neighbours;
@@ -96,6 +99,14 @@ public class RecordingRow extends BaseModel {
         this.id = id;
     }
 
+    public String getImei() {
+        return imei;
+    }
+
+    public void setImei(String imei) {
+        this.imei = imei;
+    }
+
     public String getModel() {
         return model;
     }
@@ -112,19 +123,19 @@ public class RecordingRow extends BaseModel {
         this.date = date;
     }
 
-    public long getLatitude() {
+    public double getLatitude() {
         return latitude;
     }
 
-    public void setLatitude(long latitude) {
+    public void setLatitude(double latitude) {
         this.latitude = latitude;
     }
 
-    public long getLongitude() {
+    public double getLongitude() {
         return longitude;
     }
 
-    public void setLongitude(long longitude) {
+    public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
 
@@ -176,12 +187,12 @@ public class RecordingRow extends BaseModel {
         this.name = name;
     }
 
-    public int getValue() {
-        return value;
+    public int getStrength() {
+        return strength;
     }
 
-    public void setValue(int value) {
-        this.value = value;
+    public void setStrength(int value) {
+        this.strength = value;
     }
 
     public String getNeighbours() {

@@ -7,18 +7,22 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
-import android.os.Bundle;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
-import android.widget.Toast;
-
-import com.cstb.vigiphone3.R;
 
 public class SensorService extends Service implements SensorEventListener {
 
     private SensorManager sensorManager;
+    private float[] accelerometerMax = {1000, 1000, 1000};
+    private float[] accelerometerMin = {1000, 1000, 1000};
+    private float[] gyroscopeMax = {1000, 1000, 1000};
+    private float[] gyroscopeMin = {1000, 1000, 1000};
+    private float[] magneticFieldMax = {1000, 1000, 1000};
+    private float[] magneticFieldMin = {1000, 1000, 1000};
+
+    private SharedPreferences SP;
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -34,13 +38,225 @@ public class SensorService extends Service implements SensorEventListener {
     public int onStartCommand(Intent intent, int flags, int startId) {
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         listenToAllSensors();
+        SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         return Service.START_STICKY;
     }
 
-
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
-        sendMessageToActivity(sensorEvent.sensor.getType(), sensorEvent.values);
+
+        boolean calibrationModeActivated = SP.getBoolean("modeCalibrate", false);
+        boolean hasAlreadyBeenCalibrated = SP.getBoolean("hasCalibrated", false);
+
+        if(calibrationModeActivated){
+
+            if(!hasAlreadyBeenCalibrated){
+                getCalibratedData(sensorEvent);
+            }
+
+            float[] value;
+            switch(sensorEvent.sensor.getType()){
+                case Sensor.TYPE_ACCELEROMETER:
+                    value = new float[]{Math.round(sensorEvent.values[0]/calibrate(getDa()))*calibrate(getDa()),
+                            Math.round(sensorEvent.values[1]/calibrate(getDa()))*calibrate(getDa()),
+                            Math.round(sensorEvent.values[2]/calibrate(getDa()))*calibrate(getDa())};
+                    sendMessageToActivity(sensorEvent.sensor.getType(), value);
+                    break;
+                case Sensor.TYPE_GYROSCOPE:
+                    value = new float[]{Math.round(sensorEvent.values[0]/calibrate(getDg()))*calibrate(getDg()),
+                            Math.round(sensorEvent.values[1]/calibrate(getDg()))*calibrate(getDg()),
+                            Math.round(sensorEvent.values[2]/calibrate(getDg()))*calibrate(getDg())};
+                    sendMessageToActivity(sensorEvent.sensor.getType(), value);
+                    break;
+                case Sensor.TYPE_MAGNETIC_FIELD:
+                    value = new float[]{Math.round(sensorEvent.values[0]/calibrate(getDm()))*calibrate(getDm()),
+                            Math.round(sensorEvent.values[1]/calibrate(getDm()))*calibrate(getDm()),
+                            Math.round(sensorEvent.values[2]/calibrate(getDm()))*calibrate(getDm())};
+                    sendMessageToActivity(sensorEvent.sensor.getType(), value);
+                    break;
+                default:
+                    sendMessageToActivity(sensorEvent.sensor.getType(), sensorEvent.values);
+                    break;
+            }
+        }else{
+            sendMessageToActivity(sensorEvent.sensor.getType(), sensorEvent.values);
+        }
+    }
+
+    private void getCalibratedData(SensorEvent sensorEvent){
+        switch (sensorEvent.sensor.getType()) {
+
+            case Sensor.TYPE_ACCELEROMETER:
+
+                if (accelerometerMax[0] == 1000 && accelerometerMin[0] == 1000) {
+                    accelerometerMax[0] = sensorEvent.values[0];
+                    accelerometerMin[0] = sensorEvent.values[0];
+                }
+
+                if (accelerometerMax[1] == 1000 && accelerometerMin[1] == 1000) {
+                    accelerometerMax[1] = sensorEvent.values[1];
+                    accelerometerMin[1] = sensorEvent.values[1];
+                }
+
+                if (accelerometerMax[2] == 1000 && accelerometerMin[2] == 1000) {
+                    accelerometerMax[2] = sensorEvent.values[2];
+                    accelerometerMin[2] = sensorEvent.values[2];
+                }
+
+                if (accelerometerMax[0] != 1000 && accelerometerMin[0] != 1000 &&
+                        accelerometerMax[1] != 1000 && accelerometerMin[1] != 1000 &&
+                        accelerometerMax[2] != 1000 && accelerometerMin[2] != 1000) {
+
+                    accelerometerMax[0] = Math.max(sensorEvent.values[0], accelerometerMax[0]);
+                    accelerometerMin[0] = Math.min(sensorEvent.values[0], accelerometerMin[0]);
+
+                    accelerometerMax[1] = Math.max(sensorEvent.values[1], accelerometerMax[1]);
+                    accelerometerMin[1] = Math.min(sensorEvent.values[1], accelerometerMin[1]);
+
+                    accelerometerMax[2] = Math.max(sensorEvent.values[2], accelerometerMax[2]);
+                    accelerometerMin[2] = Math.min(sensorEvent.values[2], accelerometerMin[2]);
+
+                }
+                break;
+
+            case Sensor.TYPE_GYROSCOPE:
+
+                if (gyroscopeMax[0] == 1000 && gyroscopeMin[0] == 1000) {
+                    gyroscopeMax[0] = sensorEvent.values[0];
+                    gyroscopeMin[0] = sensorEvent.values[0];
+                }
+
+                if (gyroscopeMax[1] == 1000 && gyroscopeMin[1] == 1000) {
+                    gyroscopeMax[1] = sensorEvent.values[1];
+                    gyroscopeMin[1] = sensorEvent.values[1];
+                }
+
+                if (gyroscopeMax[2] == 1000 && gyroscopeMin[2] == 1000) {
+                    gyroscopeMax[2] = sensorEvent.values[2];
+                    gyroscopeMin[2] = sensorEvent.values[2];
+                }
+
+                if (gyroscopeMax[0] != 1000 && gyroscopeMin[0] != 1000 &&
+                        gyroscopeMax[1] != 1000 && gyroscopeMin[1] != 1000 &&
+                        gyroscopeMax[2] != 1000 && gyroscopeMin[2] != 1000) {
+
+                    gyroscopeMax[0] = Math.max(sensorEvent.values[0], gyroscopeMax[0]);
+                    gyroscopeMin[0] = Math.min(sensorEvent.values[0], gyroscopeMin[0]);
+
+                    gyroscopeMax[1] = Math.max(sensorEvent.values[1], gyroscopeMax[1]);
+                    gyroscopeMin[1] = Math.min(sensorEvent.values[1], gyroscopeMin[1]);
+
+                    gyroscopeMax[2] = Math.max(sensorEvent.values[2], gyroscopeMax[2]);
+                    gyroscopeMin[2] = Math.min(sensorEvent.values[2], gyroscopeMin[2]);
+
+                }
+                break;
+
+            case Sensor.TYPE_MAGNETIC_FIELD:
+
+                if (magneticFieldMax[0] == 1000 && magneticFieldMin[0] == 1000) {
+                    magneticFieldMax[0] = sensorEvent.values[0];
+                    magneticFieldMin[0] = sensorEvent.values[0];
+                }
+
+                if (magneticFieldMax[1] == 1000 && magneticFieldMin[1] == 1000) {
+                    magneticFieldMax[1] = sensorEvent.values[1];
+                    magneticFieldMin[1] = sensorEvent.values[1];
+                }
+
+                if (magneticFieldMax[2] == 1000 && magneticFieldMin[2] == 1000) {
+                    magneticFieldMax[2] = sensorEvent.values[2];
+                    magneticFieldMin[2] = sensorEvent.values[2];
+                }
+
+                if (magneticFieldMax[0] != 1000 && magneticFieldMin[0] != 1000 &&
+                        magneticFieldMax[1] != 1000 && magneticFieldMin[1] != 1000 &&
+                        magneticFieldMax[2] != 1000 && magneticFieldMin[2] != 1000) {
+
+                    magneticFieldMax[0] = Math.max(sensorEvent.values[0], magneticFieldMax[0]);
+                    magneticFieldMin[0] = Math.min(sensorEvent.values[0], magneticFieldMin[0]);
+
+                    magneticFieldMax[1] = Math.max(sensorEvent.values[1], magneticFieldMax[1]);
+                    magneticFieldMin[1] = Math.min(sensorEvent.values[1], magneticFieldMin[1]);
+
+                    magneticFieldMax[2] = Math.max(sensorEvent.values[2], magneticFieldMax[2]);
+                    magneticFieldMin[2] = Math.min(sensorEvent.values[2], magneticFieldMin[2]);
+
+                }
+                break;
+        }
+    }
+
+    public float calibrate(float f) {
+        float result;
+        boolean b = false;
+
+        int i = (int) f;
+
+        if (i > 0) {
+            double d = f;
+            f = (float) Math.round(d);
+            i = (int) f;
+            int y = String.valueOf(i).length() - 1;
+            int l = (int) Math.pow(10, y);
+            int x = Integer.valueOf(String.valueOf(String.valueOf(i).charAt(0)));
+
+            result = x * l;
+        } else {
+
+            String str = String.valueOf(f);
+            int in = -1;
+
+            while (!b && in < str.length() - 1) {
+                in = in + 1;
+                if (str.charAt(in) != '0' && str.charAt(in) != '.') {
+                    b = true;
+                }
+            }
+
+            int x = in;
+
+            if (str.length() > (in + 1))
+                str = str.substring(0, x + 2);
+
+            if (Integer.valueOf(String.valueOf(str.charAt(in))) >= 5) {
+                int n = Integer.valueOf(String.valueOf(str.charAt(in))) + 1;
+                String str2 = str.substring(0, x) + String.valueOf(n);
+                result = Float.valueOf(str2);
+            } else {
+                str = str.substring(0, x + 1);
+                result = Float.valueOf(str);
+            }
+        }
+
+        return result;
+    }
+
+    public float getDa() {
+        float i = accelerometerMax[0] - accelerometerMin[0];
+        float j = accelerometerMax[1] - accelerometerMin[1];
+        float k = accelerometerMax[2] - accelerometerMin[2];
+        float da = Math.max(i, j);
+        da = Math.max(k, da);
+        return da;
+    }
+
+    public float getDg() {
+        float i = gyroscopeMax[0] - gyroscopeMin[0];
+        float j = gyroscopeMax[1] - gyroscopeMin[1];
+        float k = gyroscopeMax[2] - gyroscopeMin[2];
+        float dg = Math.max(i, j);
+        dg = Math.max(k, dg);
+        return dg;
+    }
+
+    public float getDm() {
+        float i = magneticFieldMax[0] - magneticFieldMin[0];
+        float j = magneticFieldMax[1] - magneticFieldMin[1];
+        float k = magneticFieldMax[2] - magneticFieldMin[2];
+        float dm = Math.max(i, j);
+        dm = Math.max(k, dm);
+        return dm;
     }
 
     @Override
@@ -98,7 +314,7 @@ public class SensorService extends Service implements SensorEventListener {
         }
     }
 
-    public void sendMessageToActivity(int type, float[] value){
+    public void sendMessageToActivity(int type, float[] value) {
         Intent intent = new Intent("SensorChanged");
         intent.putExtra("type", type);
         intent.putExtra("value", value);

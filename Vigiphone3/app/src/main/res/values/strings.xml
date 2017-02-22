@@ -47,4 +47,19 @@
     <string name="camera_mode">Camera mode</string>
     <string name="other">Other</string>
     <string name="fetching">fetching...</string>
+    <string name="permissions_needed_title">Permissions Needed</string>
+    <string name="permissions_needed_text">Vigiphone3 needs some permissions in order to save and send data, please allow them if you want the app to work as intended !</string>
+    <string name="permissions_denied">Permissions Denied</string>
+    <string name="permissions_permanently_denied">Permissions Permanently Denied</string>
+    <string name="permissions_denied_text">You denied some permissions that are needed for the app to run. Please reconsider allowing them via the settings</string>
+    <string name="permissions_permanently_denied_text">You permanently denied some permissions that are needed for the app to run. Please reconsider allowing them via the settings</string>
+    <string name="settings_button_text">Settings</string>
+    <string name="recording_fragment_title">Recording</string>
+    <string name="sensors_fragment_title">Sensors</string>
+    <string name="map_fragment_title">Map</string>
+    <string name="uncalibrate">Uncalibrate</string>
+    <string name="calibrate">Calibrate</string>
+    <string name="please_wait_title">Please wait</string>
+    <string name="calibration_ongoing">The calibration is being done, don\'t move your phone</string>
+    <string name="orientation">Orientation</string>
 </resources>

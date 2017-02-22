@@ -5,17 +5,27 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
+import android.hardware.SensorManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.afollestad.materialdialogs.MaterialDialog;
 import com.cstb.vigiphone3.R;
+import com.cstb.vigiphone3.data.model.RecordingRow;
+import com.cstb.vigiphone3.service.ServiceManager;
+import com.cstb.vigiphone3.ui.MainActivity;
 
 import java.util.Locale;
 
@@ -66,43 +76,67 @@ public class SensorsFragment extends Fragment {
     @BindView(R.id.proximity_text)
     TextView proximityText;
 
+    @BindView(R.id.orientation_text)
+    TextView orientationText;
+
     //endregion
 
     private int cidTapCount = 0;
-    private int Cid = 0;
-    private int Lac = 0;
+    private RecordingRow recordingRow;
+    private SharedPreferences SP;
 
-    private BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
+    private BroadcastReceiver mUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            int type = (int) intent.getExtras().get("type");
-            float[] value = (float[]) intent.getExtras().get("value");
-            updateAccordingView(type, value);
-        }
-    };
-    private BroadcastReceiver mLocationReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Location value = (Location) intent.getExtras().get("value");
-            updateAccordingView(value);
-        }
-    };
-    private BroadcastReceiver mSignalReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            int Cid = (int) intent.getExtras().get("cid");
-            int Lac = (int) intent.getExtras().get("lac");
-            int Mcc = (int) intent.getExtras().get("mcc");
-            int Mnc = (int) intent.getExtras().get("mnc");
-            String networkName = (String) intent.getExtras().get("name");
-            String networkType = (String) intent.getExtras().get("type");
-            String neighbours = (String) intent.getExtras().get("neighbours");
-            int Strength = (int) intent.getExtras().get("strength");
-            updateAccordingView(Cid, Lac, Mcc, Mnc, networkName, networkType, neighbours, Strength);
+            recordingRow = ServiceManager.getRecordingRow();
+            updateAccordingView();
         }
     };
 
     public SensorsFragment() {
+    }
+
+    @OnClick(R.id.calibrate_button)
+    public void calibrateButton(){
+        if(!SP.getBoolean("modeCalibrate",false)){
+
+            final MaterialDialog dialog = new MaterialDialog.Builder(getActivity())
+                    .title(R.string.please_wait_title)
+                    .content(R.string.calibration_ongoing)
+                    .progress(true, 0)
+                    .show();
+
+            final Handler showDialogAndCalibrate = new Handler();
+            final Handler dismissDialogAndStopCalibration = new Handler();
+
+            showDialogAndCalibrate.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    SP.edit().putBoolean("modeCalibrate", true).apply();
+
+                    dismissDialogAndStopCalibration.postDelayed(new Runnable() {
+                        @Override
+                        public void run() {
+                            SP.edit().putBoolean("hasCalibrated", true).apply();
+                            dialog.dismiss();
+                        }
+                    }, 10000); //ms
+                }
+            }, 2000); //ms
+
+        }else{
+            Toast.makeText(getActivity(),"Already calibrated", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    @OnClick(R.id.uncalibrate_button)
+    public void uncalibrateButton(){
+        if(SP.getBoolean("modeCalibrate",false)){
+            SP.edit().putBoolean("modeCalibrate", false).apply();
+            SP.edit().putBoolean("hasCalibrated", false).apply();
+        }else{
+            Toast.makeText(getActivity(),"No calibration done", Toast.LENGTH_SHORT).show();
+        }
     }
 
     @Override
@@ -110,66 +144,58 @@ public class SensorsFragment extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sensor, container, false);
         ButterKnife.bind(this, view);
-
-        registerReceivers();
-
+        SP = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mUpdateReceiver, new IntentFilter("UpdateView"));
         return view;
     }
 
-
-    public void updateAccordingView(int type, float[] value) {
+    public void updateAccordingView() {
+        changeCidDisplay();
         String text;
-        switch (type) {
+        text = String.valueOf(recordingRow.getMCC()) + " / " + String.valueOf(recordingRow.getMNC());
+        mccMncText.setText(text);
+        opNameText.setText(recordingRow.getName());
+        typeText.setText(recordingRow.getType());
+        neighboursText.setText(recordingRow.getNeighbours());
+        text = String.valueOf(recordingRow.getStrength());
+        strenghText.setText(text);
 
-            case Sensor.TYPE_ACCELEROMETER:
-                text = String.format(Locale.ENGLISH, "%.3f / %.3f / %.3f", value[0], value[1], value[2]);
-                accelerometerText.setText(text);
-                break;
+        text = String.format(Locale.ENGLISH, "%.6f", recordingRow.getLatitude());
+        latitudeText.setText(text);
+        text = String.format(Locale.ENGLISH, "%.6f", recordingRow.getLongitude());
+        longitudeText.setText(text);
 
-            case Sensor.TYPE_GYROSCOPE:
-                text = String.format(Locale.ENGLISH, "%.3f / %.3f / %.3f", value[0], value[1], value[2]);
-                gyroscopeText.setText(text);
-                break;
+        text = String.format(Locale.ENGLISH, "%.3f / %.3f / %.3f", recordingRow.getAccelerometerX(), recordingRow.getAccelerometerY(), recordingRow.getAccelerometerZ());
+        accelerometerText.setText(text);
+        text = String.format(Locale.ENGLISH, "%.3f / %.3f / %.3f", recordingRow.getGyroscopeX(), recordingRow.getGyroscopeY(), recordingRow.getGyroscopeZ());
+        gyroscopeText.setText(text);
+        text = String.format(Locale.ENGLISH, "%.3f / %.3f / %.3f", recordingRow.getMagneticFieldX(), recordingRow.getMagneticFieldY(), recordingRow.getMagneticFieldZ());
+        magneticFieldText.setText(text);
+        text = String.valueOf(recordingRow.getLight());
+        lightText.setText(text);
+        text = String.valueOf(recordingRow.getProximity());
+        proximityText.setText(text);
 
-            case Sensor.TYPE_MAGNETIC_FIELD:
-                text = String.format(Locale.ENGLISH, "%.3f / %.3f / %.3f", value[0], value[1], value[2]);
-                magneticFieldText.setText(text);
-                break;
 
-            case Sensor.TYPE_LIGHT:
-                text = String.valueOf(value[0]);
-                lightText.setText(text);
-                break;
+        float[] accelerometer = {recordingRow.getAccelerometerX(), recordingRow.getAccelerometerY(), recordingRow.getAccelerometerZ()};
+        float[] gyroscope = {recordingRow.getGyroscopeX(), recordingRow.getGyroscopeY(), recordingRow.getGyroscopeZ()};
+        float[] R = new float[9];
+        if(accelerometer!= null && gyroscope != null){
+            float orientation[] = new float[3];
+            if(SensorManager.getRotationMatrix(R, new float[3], accelerometer, gyroscope)){
+                SensorManager.getOrientation(R, orientation);
 
-            case Sensor.TYPE_PROXIMITY:
-                text = String.valueOf(value[0]);
-                proximityText.setText(text);
-                break;
+                text = String.valueOf((int) Math.toDegrees(orientation[0])) + " / "
+                + String.valueOf((int) Math.toDegrees(orientation[1])) + " / "
+                + String.valueOf((int) Math.toDegrees(orientation[2]));
+
+                orientationText.setText(text);
+
+            }
         }
     }
 
-    public void updateAccordingView(Location value) {
-        String text = String.format(Locale.ENGLISH, "%.6f", value.getLatitude());
-        latitudeText.setText(text);
-        text = String.format(Locale.ENGLISH, "%.6f", value.getLongitude());
-        longitudeText.setText(text);
-    }
-
-    public void updateAccordingView(int CID, int LAC, int MCC, int MNC, String networkName, String networkType, String neighbours, int Strength) {
-        Cid = CID;
-        Lac = LAC;
-        changeCidDisplay();
-        String text;
-        text = String.valueOf(MCC) + " / " + String.valueOf(MNC);
-        mccMncText.setText(text);
-        opNameText.setText(networkName);
-        typeText.setText(networkType);
-        neighboursText.setText(neighbours);
-        text = String.valueOf(Strength);
-        strenghText.setText(text);
-    }
-
-    @OnClick(R.id.cidlac_label)
+    @OnClick({R.id.cidlac_label, R.id.cidlac_text})
     public void changeDisplay() {
         cidTapCount++;
         changeCidDisplay();
@@ -178,46 +204,36 @@ public class SensorsFragment extends Fragment {
     private void changeCidDisplay() {
         switch (cidTapCount % 3) {
             case 0:
-                cidLacText.setText(String.valueOf(Cid) + "/" + String.valueOf(Lac));
+                cidLacText.setText(String.valueOf(recordingRow.getCID()) + "/" + String.valueOf(recordingRow.getLAC()));
                 break;
             case 1:
-                cidLacText.setText(String.valueOf(Cid / 65536) + "x2\u00B9\u2076+" + String.valueOf(Cid % 65535) + "/" + String.valueOf(Lac));
+                cidLacText.setText(String.valueOf(recordingRow.getCID() / 65536) + "x2\u00B9\u2076+" + String.valueOf(recordingRow.getCID() % 65535) + "/" + String.valueOf(recordingRow.getLAC()));
                 break;
             case 2:
-                cidLacText.setText("0x" + String.valueOf(Integer.toString(Cid, 16)) + "/" + String.valueOf(Lac));
+                cidLacText.setText("0x" + String.valueOf(Integer.toString(recordingRow.getCID(), 16)) + "/" + String.valueOf(recordingRow.getLAC()));
                 break;
         }
-    }
-
-    private void registerReceivers() {
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mLocationReceiver, new IntentFilter("LocationChanged"));
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mSensorReceiver, new IntentFilter("SensorChanged"));
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mSignalReceiver, new IntentFilter("SignalChanged"));
-    }
-
-    private void unregisterReceivers() {
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mLocationReceiver);
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mSensorReceiver);
-        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mSignalReceiver);
-    }
-
-    @Override
-    public void onResume() {
-        super.onResume();
-        registerReceivers();
     }
 
     @Override
     public void onPause() {
         super.onPause();
-        unregisterReceivers();
+        Log.d("SensorFragment", "updateReceiver paused");
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mUpdateReceiver);
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        Log.d("SensorFragment", "updateReceiver registered again");
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mUpdateReceiver, new IntentFilter("UpdateView"));
     }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        unregisterReceivers();
+        Log.d("SensorFragment", "updateReceiver unregistered");
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mUpdateReceiver);
+
     }
-
-
 }
