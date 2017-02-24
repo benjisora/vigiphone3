@@ -13,10 +13,10 @@ import retrofit2.http.POST;
 
 public interface NetworkService {
 
-    @GET("recordings")
+    @GET("get_recordings")
     Call<RecordingRows> getAllRecordingRows();
 
-    @POST("save_recording")
-    Call<RecordingRow> sendRecordings(@Body RecordingRow row);
+    @POST("send_recording")
+    Call<RecordingRow> sendRecording(@Body RecordingRow row);
 
 }

@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.cstb.vigiphone3.R;
 import com.cstb.vigiphone3.data.model.RecordingRow;
+import com.cstb.vigiphone3.service.SensorService;
 import com.cstb.vigiphone3.service.ServiceManager;
 import com.cstb.vigiphone3.ui.MainActivity;
 
@@ -88,7 +89,7 @@ public class SensorsFragment extends Fragment {
     private BroadcastReceiver mUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            recordingRow = ServiceManager.getRecordingRow();
+            recordingRow = (RecordingRow) intent.getExtras().get("row");
             updateAccordingView();
         }
     };
@@ -118,6 +119,11 @@ public class SensorsFragment extends Fragment {
                         @Override
                         public void run() {
                             SP.edit().putBoolean("hasCalibrated", true).apply();
+
+                            SP.edit().putFloat("calibratedDa", SensorService.calibrate(SensorService.getDa())).apply();
+                            SP.edit().putFloat("calibratedDg", SensorService.calibrate(SensorService.getDg())).apply();
+                            SP.edit().putFloat("calibratedDm", SensorService.calibrate(SensorService.getDm())).apply();
+
                             dialog.dismiss();
                         }
                     }, 10000); //ms
@@ -176,7 +182,16 @@ public class SensorsFragment extends Fragment {
         text = String.valueOf(recordingRow.getProximity());
         proximityText.setText(text);
 
+        float[] orientation = getOrientationFromSensors();
+        if(orientation!=null){
+            text = String.valueOf((int) Math.toDegrees(orientation[0])) + " / "
+                    + String.valueOf((int) Math.toDegrees(orientation[1])) + " / "
+                    + String.valueOf((int) Math.toDegrees(orientation[2]));
+            orientationText.setText(text);
+        }
+    }
 
+    private float[] getOrientationFromSensors(){
         float[] accelerometer = {recordingRow.getAccelerometerX(), recordingRow.getAccelerometerY(), recordingRow.getAccelerometerZ()};
         float[] gyroscope = {recordingRow.getGyroscopeX(), recordingRow.getGyroscopeY(), recordingRow.getGyroscopeZ()};
         float[] R = new float[9];
@@ -184,15 +199,10 @@ public class SensorsFragment extends Fragment {
             float orientation[] = new float[3];
             if(SensorManager.getRotationMatrix(R, new float[3], accelerometer, gyroscope)){
                 SensorManager.getOrientation(R, orientation);
-
-                text = String.valueOf((int) Math.toDegrees(orientation[0])) + " / "
-                + String.valueOf((int) Math.toDegrees(orientation[1])) + " / "
-                + String.valueOf((int) Math.toDegrees(orientation[2]));
-
-                orientationText.setText(text);
-
+                return orientation;
             }
         }
+        return null;
     }
 
     @OnClick({R.id.cidlac_label, R.id.cidlac_text})

@@ -15,12 +15,12 @@ import android.util.Log;
 public class SensorService extends Service implements SensorEventListener {
 
     private SensorManager sensorManager;
-    private float[] accelerometerMax = {1000, 1000, 1000};
-    private float[] accelerometerMin = {1000, 1000, 1000};
-    private float[] gyroscopeMax = {1000, 1000, 1000};
-    private float[] gyroscopeMin = {1000, 1000, 1000};
-    private float[] magneticFieldMax = {1000, 1000, 1000};
-    private float[] magneticFieldMin = {1000, 1000, 1000};
+    private static float[] accelerometerMax = {1000, 1000, 1000};
+    private static float[] accelerometerMin = {1000, 1000, 1000};
+    private static float[] gyroscopeMax = {1000, 1000, 1000};
+    private static float[] gyroscopeMin = {1000, 1000, 1000};
+    private static float[] magneticFieldMax = {1000, 1000, 1000};
+    private static float[] magneticFieldMin = {1000, 1000, 1000};
 
     private SharedPreferences SP;
 
@@ -48,42 +48,17 @@ public class SensorService extends Service implements SensorEventListener {
         boolean calibrationModeActivated = SP.getBoolean("modeCalibrate", false);
         boolean hasAlreadyBeenCalibrated = SP.getBoolean("hasCalibrated", false);
 
-        if(calibrationModeActivated){
-
-            if(!hasAlreadyBeenCalibrated){
+        if (calibrationModeActivated) {
+            if (!hasAlreadyBeenCalibrated) {
                 getCalibratedData(sensorEvent);
             }
-
-            float[] value;
-            switch(sensorEvent.sensor.getType()){
-                case Sensor.TYPE_ACCELEROMETER:
-                    value = new float[]{Math.round(sensorEvent.values[0]/calibrate(getDa()))*calibrate(getDa()),
-                            Math.round(sensorEvent.values[1]/calibrate(getDa()))*calibrate(getDa()),
-                            Math.round(sensorEvent.values[2]/calibrate(getDa()))*calibrate(getDa())};
-                    sendMessageToActivity(sensorEvent.sensor.getType(), value);
-                    break;
-                case Sensor.TYPE_GYROSCOPE:
-                    value = new float[]{Math.round(sensorEvent.values[0]/calibrate(getDg()))*calibrate(getDg()),
-                            Math.round(sensorEvent.values[1]/calibrate(getDg()))*calibrate(getDg()),
-                            Math.round(sensorEvent.values[2]/calibrate(getDg()))*calibrate(getDg())};
-                    sendMessageToActivity(sensorEvent.sensor.getType(), value);
-                    break;
-                case Sensor.TYPE_MAGNETIC_FIELD:
-                    value = new float[]{Math.round(sensorEvent.values[0]/calibrate(getDm()))*calibrate(getDm()),
-                            Math.round(sensorEvent.values[1]/calibrate(getDm()))*calibrate(getDm()),
-                            Math.round(sensorEvent.values[2]/calibrate(getDm()))*calibrate(getDm())};
-                    sendMessageToActivity(sensorEvent.sensor.getType(), value);
-                    break;
-                default:
-                    sendMessageToActivity(sensorEvent.sensor.getType(), sensorEvent.values);
-                    break;
-            }
-        }else{
+            sendCalibratedData(sensorEvent);
+        } else {
             sendMessageToActivity(sensorEvent.sensor.getType(), sensorEvent.values);
         }
     }
 
-    private void getCalibratedData(SensorEvent sensorEvent){
+    private void getCalibratedData(SensorEvent sensorEvent) {
         switch (sensorEvent.sensor.getType()) {
 
             case Sensor.TYPE_ACCELEROMETER:
@@ -187,7 +162,39 @@ public class SensorService extends Service implements SensorEventListener {
         }
     }
 
-    public float calibrate(float f) {
+    private void sendCalibratedData(SensorEvent sensorEvent) {
+
+        float calibratedDa = SP.getFloat("calibratedDa", 1);
+        float calibratedDg = SP.getFloat("calibratedDg", 1);
+        float calibratedDm = SP.getFloat("calibratedDm", 1);
+
+        float[] value;
+        switch (sensorEvent.sensor.getType()) {
+            case Sensor.TYPE_ACCELEROMETER:
+                value = new float[]{Math.round(sensorEvent.values[0] / calibratedDa) * calibratedDa,
+                        Math.round(sensorEvent.values[1] / calibratedDa) * calibratedDa,
+                        Math.round(sensorEvent.values[2] / calibratedDa) * calibratedDa};
+                sendMessageToActivity(sensorEvent.sensor.getType(), value);
+                break;
+            case Sensor.TYPE_GYROSCOPE:
+                value = new float[]{Math.round(sensorEvent.values[0] / calibratedDg) * calibratedDg,
+                        Math.round(sensorEvent.values[1] / calibratedDg) * calibratedDg,
+                        Math.round(sensorEvent.values[2] / calibratedDg) * calibratedDg};
+                sendMessageToActivity(sensorEvent.sensor.getType(), value);
+                break;
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                value = new float[]{Math.round(sensorEvent.values[0] / calibratedDm) * calibratedDm,
+                        Math.round(sensorEvent.values[1] / calibratedDm) * calibratedDm,
+                        Math.round(sensorEvent.values[2] / calibratedDm) * calibratedDm};
+                sendMessageToActivity(sensorEvent.sensor.getType(), value);
+                break;
+            default:
+                sendMessageToActivity(sensorEvent.sensor.getType(), sensorEvent.values);
+                break;
+        }
+    }
+
+    public static float calibrate(float f) {
         float result;
         boolean b = false;
 
@@ -232,7 +239,7 @@ public class SensorService extends Service implements SensorEventListener {
         return result;
     }
 
-    public float getDa() {
+    public static float getDa() {
         float i = accelerometerMax[0] - accelerometerMin[0];
         float j = accelerometerMax[1] - accelerometerMin[1];
         float k = accelerometerMax[2] - accelerometerMin[2];
@@ -241,7 +248,7 @@ public class SensorService extends Service implements SensorEventListener {
         return da;
     }
 
-    public float getDg() {
+    public static float getDg() {
         float i = gyroscopeMax[0] - gyroscopeMin[0];
         float j = gyroscopeMax[1] - gyroscopeMin[1];
         float k = gyroscopeMax[2] - gyroscopeMin[2];
@@ -250,7 +257,7 @@ public class SensorService extends Service implements SensorEventListener {
         return dg;
     }
 
-    public float getDm() {
+    public static float getDm() {
         float i = magneticFieldMax[0] - magneticFieldMin[0];
         float j = magneticFieldMax[1] - magneticFieldMin[1];
         float k = magneticFieldMax[2] - magneticFieldMin[2];

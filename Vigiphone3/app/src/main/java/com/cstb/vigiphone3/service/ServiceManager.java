@@ -8,16 +8,14 @@ import android.hardware.Sensor;
 import android.location.Location;
 import android.os.Build;
 import android.support.v4.content.LocalBroadcastManager;
-import android.telephony.TelephonyManager;
+import android.util.Log;
 
 import com.cstb.vigiphone3.data.model.RecordingRow;
-import com.cstb.vigiphone3.ui.MainActivity;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-import static com.cstb.vigiphone3.data.model.RecordingRow_Table.LAC;
 
 /**
  * Created by saugues on 21/02/17.
@@ -31,8 +29,6 @@ public class ServiceManager {
     private float[] accelerometer, gyroscope, magneticField;
     private float light, proximity;
     private Context context;
-
-    private static RecordingRow recordingRow;
 
     private BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
         @Override
@@ -60,8 +56,15 @@ public class ServiceManager {
                     }
                     break;
             }
-            initializeRecordingRow();
             sendUpdateMessage();
+        }
+    };
+
+    private BroadcastReceiver mSaveRecordingRow = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("RecordService", "saving...");
+            saveRecordingRow((long) intent.getExtras().get("time"));
         }
     };
 
@@ -69,7 +72,6 @@ public class ServiceManager {
         @Override
         public void onReceive(Context context, Intent intent) {
             location = (Location) intent.getExtras().get("value");
-            initializeRecordingRow();
             sendUpdateMessage();
         }
     };
@@ -86,27 +88,21 @@ public class ServiceManager {
             networkType = (String) intent.getExtras().get("type");
             neighbours = (String) intent.getExtras().get("neighbours");
             strength = (int) intent.getExtras().get("strength");
-            initializeRecordingRow();
             sendUpdateMessage();
         }
     };
 
-    public ServiceManager(Context activityContext){
+    public ServiceManager(Context activityContext) {
         context = activityContext;
         cid = lac = mcc = mnc = strength = 0;
         networkName = networkType = neighbours = deviceId = "";
         location = null;
-        accelerometer = gyroscope = magneticField = new float[]{0,0,0};
+        accelerometer = gyroscope = magneticField = new float[]{0, 0, 0};
         light = proximity = 0;
 
-        recordingRow = new RecordingRow();
     }
 
-    public static RecordingRow getRecordingRow(){
-        return recordingRow;
-    }
-
-    private void initializeRecordingRow(){
+    private void initializeRecordingRow(RecordingRow recordingRow) {
 
         recordingRow.setCID(cid);
         recordingRow.setLAC(lac);
@@ -116,7 +112,7 @@ public class ServiceManager {
         recordingRow.setType(networkType);
         recordingRow.setStrength(strength);
         recordingRow.setNeighbours(neighbours);
-        if(location!=null){
+        if (location != null) {
             recordingRow.setLatitude(location.getLatitude());
             recordingRow.setLongitude(location.getLongitude());
         }
@@ -134,46 +130,55 @@ public class ServiceManager {
 
     }
 
-    public void saveRecordingRow(String deviceId){
-        SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
-        Long time = System.currentTimeMillis();
-        Date date = new Date(time);
-        initializeRecordingRow();
-        recordingRow.setImei(deviceId);
-        recordingRow.setDate(dateformat.format(date));
-        recordingRow.setModel(Build.MODEL);
+    private void saveRecordingRow(Long time) {
 
-        if(recordingRow!=null){
-            recordingRow.save();
-        }
+        SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
+        Date date = new Date(time);
+
+        RecordingRow rec = new RecordingRow();
+        initializeRecordingRow(rec);
+
+        rec.setImei(deviceId);
+        rec.setDate(dateformat.format(date));
+        rec.setModel(Build.MODEL);
+        rec.save();
     }
 
-    public void startServices(){
+    public void startServices() {
         context.startService(new Intent(context, SensorService.class));
         context.startService(new Intent(context, SignalService.class));
         context.startService(new Intent(context, LocationService.class));
+        context.startService(new Intent(context, RecordService.class));
     }
 
-    public void stopServices(){
+    public void stopServices() {
         context.stopService(new Intent(context, SensorService.class));
         context.stopService(new Intent(context, SignalService.class));
         context.stopService(new Intent(context, LocationService.class));
+        context.stopService(new Intent(context, RecordService.class));
     }
 
     public void registerReceivers() {
         LocalBroadcastManager.getInstance(context).registerReceiver(mLocationReceiver, new IntentFilter("LocationChanged"));
         LocalBroadcastManager.getInstance(context).registerReceiver(mSensorReceiver, new IntentFilter("SensorChanged"));
         LocalBroadcastManager.getInstance(context).registerReceiver(mSignalReceiver, new IntentFilter("SignalChanged"));
+        LocalBroadcastManager.getInstance(context).registerReceiver(mSaveRecordingRow, new IntentFilter("saveRecordingRow"));
+
     }
 
     public void unregisterReceivers() {
         LocalBroadcastManager.getInstance(context).unregisterReceiver(mLocationReceiver);
         LocalBroadcastManager.getInstance(context).unregisterReceiver(mSensorReceiver);
         LocalBroadcastManager.getInstance(context).unregisterReceiver(mSignalReceiver);
+        LocalBroadcastManager.getInstance(context).unregisterReceiver(mSaveRecordingRow);
     }
 
-    private void sendUpdateMessage(){
+    private void sendUpdateMessage() {
+        RecordingRow rec = new RecordingRow();
+        initializeRecordingRow(rec);
+
         Intent intent = new Intent("UpdateView");
+        intent.putExtra("row", rec);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }
 

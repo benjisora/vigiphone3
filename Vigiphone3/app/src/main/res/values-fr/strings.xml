@@ -9,7 +9,7 @@
     <string name="cid_lac">CID - LAC</string>
     <string name="current_recording_duration">Durée actuelle d\'enregistrement :</string>
     <string name="current_recording_step">Pas d\'enregistrement actuel :</string>
-    <string name="current_threshold">seuil de transfert actuel :</string>
+    <string name="current_threshold">Seuil de transfert actuel :</string>
     <string name="database_size">Taille de la database :</string>
     <string name="emitter">Emetteur</string>
     <string name="error_fetching_data">Erreur lors de la récupération de données depuis le serveur</string>
@@ -44,4 +44,25 @@
     <string name="watch_the_sensors">Observer les capteurs</string>
     <string name="camera_mode">Mode caméra</string>
     <string name="fetching">acquisition...</string>
+    <string name="ends_after">Finit après :</string>
+    <string name="file_name">Nom du fichier :</string>
+    <string name="choose_file_name">Choisir un nom de fichier</string>
+    <string name="calibration_ongoing">La calibration est en cours, veuillez ne pas bouger votre téléphone</string>
+    <string name="calibrate">Calibrer</string>
+    <string name="has_been_recording_for">Enregistre depuis :</string>
+    <string name="map_fragment_title">Carte</string>
+    <string name="orientation">Orientation</string>
+    <string name="permissions_denied">Permissions Refusées</string>
+    <string name="permissions_denied_text">Vous avez refusé des permissions nécéssaires au bon fonctionnement de l\'application. Veuillez reconsidérer votre refus depuis les paramètres</string>
+    <string name="permissions_needed_text">Vigiphone3 a besoin de certaines permissions pour enregistrer et envoyer des données, veuillez les autoriser si vous voulez que l\'application fonctionne comme désiré</string>
+    <string name="permissions_needed_title">Permissions Nécéssaires</string>
+    <string name="permissions_permanently_denied">Permissions Définitivement Refusées</string>
+    <string name="permissions_permanently_denied_text">Vous avez refusé définitivement des permissions nécéssaires au bon fonctionnement de l\'application. Veuillez reconsidérer votre refus depuis les paramètres</string>
+    <string name="please_wait_title">Veuillez patienter</string>
+    <string name="recording_duration">Durée d\'enregistrement :</string>
+    <string name="recording_fragment_title">Enregistrement</string>
+    <string name="recording_summary">Résumé de l\'Enregistrement</string>
+    <string name="sensors_fragment_title">Capteurs</string>
+    <string name="settings_button_text">Paramètres</string>
+    <string name="uncalibrate">Décalibrer</string>
 </resources>

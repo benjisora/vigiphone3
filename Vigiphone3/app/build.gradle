@@ -57,4 +57,10 @@ dependencies {
 
     //PermissionManager (permissions)
     compile 'com.auron:permission-manage:1.1.6'
+
+    //TimePickerWithSeconds
+    compile 'com.kovachcode:timePickerWithSeconds:1.0.0'
+
+    //PugNotification (Notifications)
+    compile 'com.github.halysongoncalves:pugnotification:1.8.1'
 }

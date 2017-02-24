@@ -1,10 +1,12 @@
 package com.cstb.vigiphone3.service;
 
+
 import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.support.v4.content.LocalBroadcastManager;
 import android.telephony.CellLocation;
 import android.telephony.NeighboringCellInfo;
@@ -40,7 +42,7 @@ public class SignalService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
         myPhoneStateListener = new MyPhoneStateListener();
-        deviceId = telephonyManager.getDeviceId();
+        deviceId = Settings.Secure.getString(this.getContentResolver(), Settings.Secure.ANDROID_ID);
         telephonyManager.listen(myPhoneStateListener, PhoneStateListener.LISTEN_CELL_LOCATION | PhoneStateListener.LISTEN_SIGNAL_STRENGTHS);
         initializeData();
         return Service.START_STICKY;
@@ -71,6 +73,7 @@ public class SignalService extends Service {
         sendMessageToActivity(deviceId, myPhoneStateListener.CID, myPhoneStateListener.LAC, myPhoneStateListener.MCC, myPhoneStateListener.MNC, myPhoneStateListener.networkName, myPhoneStateListener.networkType, myPhoneStateListener.neighbours, myPhoneStateListener.strength);
     }
 
+    @SuppressWarnings("deprecation")
     public class MyPhoneStateListener extends PhoneStateListener {
 
         private int CID = 0, LAC = 0, MCC = 0, MNC = 0, strength = 0;

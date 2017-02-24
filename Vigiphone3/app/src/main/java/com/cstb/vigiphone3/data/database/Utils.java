@@ -12,6 +12,8 @@ import com.raizlabs.android.dbflow.sql.language.SQLite;
 
 import java.util.List;
 
+import static com.raizlabs.android.dbflow.sql.language.Method.count;
+
 public class Utils {
 
     private static Utils instanceUtils;
@@ -27,6 +29,10 @@ public class Utils {
         return SQLite.select()
                 .from(RecordingRow.class)
                 .queryList();
+    }
+
+    public long getRecordingRowsCount(){
+        return SQLite.selectCountOf().from(RecordingRow.class).count();
     }
 
     public RecordingRow getRecordingRow(int id){

@@ -11,7 +11,6 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
-import android.view.Menu;
 import android.view.MenuItem;
 
 import com.afollestad.materialdialogs.DialogAction;
@@ -52,9 +51,7 @@ public class MainActivity extends ActivityManagePermission
         if (!isPermissionsGranted(MainActivity.this, new String[]{PermissionUtils.Manifest_ACCESS_FINE_LOCATION, PermissionUtils.Manifest_READ_PHONE_STATE, PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE})) {
             askForNeededPermissions(getString(R.string.permissions_needed_title), getString(R.string.permissions_needed_text));
         } else {
-            serviceManager = new ServiceManager(MainActivity.this);
-            serviceManager.registerReceivers();
-            serviceManager.startServices();
+            createServiceManager();
         }
 
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -67,19 +64,25 @@ public class MainActivity extends ActivityManagePermission
         navigationView.setCheckedItem(R.id.nav_record);
         toolbar.setTitle(R.string.recording_fragment_title);
         Class fragmentClass = RecordingFragment.class;
-        try {
-            loadFragment(fragmentClass);
-        } catch (Exception e) {
-            Log.e("loadFragment Error", getString(R.string.log_error), e);
-        }
+        loadFragment(fragmentClass);
 
+    }
+
+    private void createServiceManager() {
+        serviceManager = new ServiceManager(MainActivity.this);
+        serviceManager.registerReceivers();
+        serviceManager.startServices();
+    }
+
+    private void stopServiceManager() {
+        serviceManager.unregisterReceivers();
+        serviceManager.stopServices();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        serviceManager.unregisterReceivers();
-        serviceManager.stopServices();
+        stopServiceManager();
     }
 
     @Override
@@ -89,23 +92,6 @@ public class MainActivity extends ActivityManagePermission
         } else {
             moveTaskToBack(true);
         }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.main, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
     }
 
     @Override
@@ -140,27 +126,26 @@ public class MainActivity extends ActivityManagePermission
                 break;
         }
 
-        try {
-            loadFragment(fragmentClass);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+        loadFragment(fragmentClass);
 
         drawer.closeDrawer(GravityCompat.START);
-        //navigationView.setCheckedItem(item.getItemId());
         return true;
     }
 
-    public void loadFragment(Class c) throws Exception {
-        Fragment fragment = null;
-        if (c != null) {
-            fragment = (Fragment) c.newInstance();
-        }
+    public void loadFragment(Class c) {
+        try {
+            Fragment fragment = null;
+            if (c != null) {
+                fragment = (Fragment) c.newInstance();
+            }
 
-        if (fragment != null) {
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment, fragment.getTag()).commit();
-            Log.d("loadFragment", "Fragment loaded, class name :" + c.getName());
+            if (fragment != null) {
+                FragmentManager fragmentManager = getSupportFragmentManager();
+                fragmentManager.beginTransaction().replace(R.id.fragment_container, fragment, fragment.getTag()).commit();
+                Log.d("loadFragment", "Fragment loaded, class name :" + c.getName());
+            }
+        } catch (Exception e) {
+            Log.e("MainActivity", getString(R.string.log_error), e);
         }
     }
 
@@ -191,9 +176,7 @@ public class MainActivity extends ActivityManagePermission
                         askCompactPermissions(new String[]{PermissionUtils.Manifest_ACCESS_FINE_LOCATION, PermissionUtils.Manifest_READ_PHONE_STATE, PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE}, new PermissionResult() {
                             @Override
                             public void permissionGranted() {
-                                serviceManager = new ServiceManager(MainActivity.this);
-                                serviceManager.registerReceivers();
-                                serviceManager.startServices();
+                                createServiceManager();
                             }
 
                             @Override
@@ -210,6 +193,5 @@ public class MainActivity extends ActivityManagePermission
                 })
                 .show();
     }
-
 
 }

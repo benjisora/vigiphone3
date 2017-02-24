@@ -6,4 +6,5 @@
     <color name="colorSplash">#87CEFA</color>
     <color name="colorBackground">#F9F9F9</color>
     <color name="primaryText">#212121</color>
+    <color name="errorRed">#D32F2F</color>
 </resources>

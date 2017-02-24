@@ -6,15 +6,16 @@ import com.raizlabs.android.dbflow.annotation.PrimaryKey;
 import com.raizlabs.android.dbflow.annotation.Table;
 import com.raizlabs.android.dbflow.structure.BaseModel;
 
+import java.io.Serializable;
 import java.util.List;
 
 @Table(database = MyDatabase.class)
-public class RecordingRow extends BaseModel {
+public class RecordingRow extends BaseModel implements Serializable{
 
     //region variables
     @PrimaryKey(autoincrement = true)
     @Column
-    private long id;
+    private int id;
 
     @Column
     private String imei;
@@ -91,11 +92,11 @@ public class RecordingRow extends BaseModel {
     //endregion
 
     //region getters/setters
-    public long getId() {
+    public int getId() {
         return id;
     }
 
-    public void setId(long id) {
+    public void setId(int id) {
         this.id = id;
     }
 

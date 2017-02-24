@@ -62,4 +62,15 @@
     <string name="please_wait_title">Please wait</string>
     <string name="calibration_ongoing">The calibration is being done, don\'t move your phone</string>
     <string name="orientation">Orientation</string>
+    <string name="choose_file_name">Choose file name</string>
+    <string name="file_name">File name :</string>
+    <string name="recording_duration">Recording duration :</string>
+    <string name="has_been_recording_for">Has been recording for :</string>
+    <string name="recording_summary">Recording Summary</string>
+    <string name="ends_after">Ends after :</string>
+    <string name="stop_recording">Stop recording</string>
+    <string name="duration_smaller_step">Recording  duration is inferior to recording step</string>
+    <string name="time_null">Time is null</string>
+    <string name="revert_default_times">Recording duration is smaller than recording step, reverted to default values.</string>
+    <string name="button_click">Button click</string>
 </resources>

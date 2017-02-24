@@ -7,6 +7,7 @@
     <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:animateLayoutChanges="true"
         android:paddingBottom="@dimen/activity_vertical_margin"
         android:paddingLeft="@dimen/activity_horizontal_margin"
         android:paddingRight="@dimen/activity_horizontal_margin"
@@ -131,7 +132,8 @@
                     android:layout_alignParentStart="true"
                     android:layout_below="@id/time_radiogroup"
                     android:layout_marginEnd="@dimen/activity_horizontal_margin"
-                    android:text="@string/current_recording_duration" />
+                    android:text="@string/current_recording_duration"
+                    android:visibility="gone" />
 
                 <TextView
                     android:id="@+id/time_text"
@@ -141,7 +143,8 @@
                     android:layout_below="@id/time_radiogroup"
                     android:layout_toEndOf="@id/time_label"
                     android:gravity="end"
-                    android:text="" />
+                    android:text=""
+                    android:visibility="gone" />
 
                 <Button
                     android:id="@+id/time_button"
@@ -152,7 +155,8 @@
                     android:layout_centerInParent="true"
                     android:gravity="center"
                     android:text="@string/change_the_recording_duration"
-                    android:textColor="@color/colorAccent" />
+                    android:textColor="@color/colorAccent"
+                    android:visibility="gone" />
 
             </RelativeLayout>
 
@@ -289,17 +293,165 @@
 
                 </RadioGroup>
 
-                <EditText
-                    android:id="@+id/file_name"
+                <TextView
+                    android:id="@+id/name_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/save_radiogroup"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="@string/file_name"
+                    android:visibility="gone" />
+
+                <TextView
+                    android:id="@+id/name_text"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/save_radiogroup"
+                    android:layout_toEndOf="@id/name_label"
+                    android:gravity="end"
+                    android:text=""
+                    android:visibility="gone" />
+
+                <Button
+                    android:id="@+id/name_button"
+                    style="@style/Widget.AppCompat.Button.Borderless"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_below="@id/name_text"
+                    android:layout_centerInParent="true"
+                    android:gravity="center"
+                    android:text="@string/choose_file_name"
+                    android:textColor="@color/colorAccent"
+                    android:visibility="gone" />
+
+            </RelativeLayout>
+        </android.support.v7.widget.CardView>
+
+        <android.support.v7.widget.CardView
+            android:id="@+id/cardview_sumup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/cardview_save"
+            android:layout_marginBottom="16dp"
+            android:visibility="gone">
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:paddingBottom="10dp"
+                android:paddingLeft="16dp"
+                android:paddingRight="16dp"
+                android:paddingTop="10dp">
+
+                <TextView
+                    android:id="@+id/sumup_section"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_below="@id/save_radiogroup"
-                    android:hint="@string/filename"
-                    android:inputType="text"
+                    android:layout_alignParentTop="true"
+                    android:gravity="center"
+                    android:paddingBottom="10dp"
+                    android:text="@string/recording_summary"
+                    android:textSize="24sp"
+                    android:textStyle="bold" />
+
+                <TextView
+                    android:id="@+id/recordsince_label_sumup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/sumup_section"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="@string/has_been_recording_for" />
+
+                <TextView
+                    android:id="@+id/recordsince_text_sumup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/sumup_section"
+                    android:layout_toEndOf="@id/recordsince_label_sumup"
+                    android:gravity="end"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/time_label_sumup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/recordsince_label_sumup"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="@string/ends_after" />
+
+                <TextView
+                    android:id="@+id/time_text_sumup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/recordsince_text_sumup"
+                    android:layout_toEndOf="@id/time_label_sumup"
+                    android:gravity="end"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/step_label_sumup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/time_label_sumup"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="@string/current_recording_step" />
+
+                <TextView
+                    android:id="@+id/step_text_sumup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/time_text_sumup"
+                    android:layout_toEndOf="@id/step_label_sumup"
+                    android:gravity="end"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/threshold_label_sumup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/step_label_sumup"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="@string/current_threshold" />
+
+                <TextView
+                    android:id="@+id/threshold_text_sumup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/step_text_sumup"
+                    android:layout_toEndOf="@id/threshold_label_sumup"
+                    android:gravity="end"
+                    android:text="" />
+
+                <TextView
+                    android:id="@+id/database_label_sumup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentStart="true"
+                    android:layout_below="@id/threshold_label_sumup"
+                    android:layout_marginEnd="@dimen/activity_horizontal_margin"
+                    android:text="@string/database_size" />
+
+                <TextView
+                    android:id="@+id/database_text_sumup"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_alignParentEnd="true"
+                    android:layout_below="@id/threshold_text_sumup"
+                    android:layout_toEndOf="@id/database_label_sumup"
+                    android:gravity="end"
                     android:text="" />
 
             </RelativeLayout>
-
         </android.support.v7.widget.CardView>
 
         <Button
@@ -307,8 +459,9 @@
             style="@style/Widget.AppCompat.Button.Borderless"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_below="@id/cardview_save"
+            android:layout_below="@id/cardview_sumup"
             android:layout_centerInParent="true"
+            android:layout_centerVertical="true"
             android:background="@color/colorAccent"
             android:gravity="center"
             android:paddingBottom="@dimen/activity_vertical_margin"
