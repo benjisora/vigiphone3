@@ -1,10 +1,7 @@
 package com.cstb.vigiphone3.data.database;
 
 import android.app.Application;
-import android.content.Context;
 import android.content.SharedPreferences;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 
 import com.cstb.vigiphone3.network.NetworkService;

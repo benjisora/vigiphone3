@@ -46,7 +46,7 @@
     <string name="map_of_emitters">Map of emitters</string>
     <string name="camera_mode">Camera mode</string>
     <string name="other">Other</string>
-    <string name="fetching">fetching...</string>
+    <string name="fetching">fetching…</string>
     <string name="permissions_needed_title">Permissions Needed</string>
     <string name="permissions_needed_text">Vigiphone3 needs some permissions in order to save and send data, please allow them if you want the app to work as intended !</string>
     <string name="permissions_denied">Permissions Denied</string>
@@ -72,5 +72,12 @@
     <string name="duration_smaller_step">Recording  duration is inferior to recording step</string>
     <string name="time_null">Time is null</string>
     <string name="revert_default_times">Recording duration is smaller than recording step, reverted to default values.</string>
-    <string name="button_click">Button click</string>
+    <string name="button_click">Manual stop</string>
+    <string name="record_and_transfer">Recording and transfer ongoing…</string>
+    <string name="transfer">Transfer ongoing…</string>
+    <string name="recording">Recording ongoing…</string>
+    <string name="choose_threshold">Choose a transfer threshold</string>
+    <string name="settings">Settings</string>
+    <string name="vigiphone_3">Vigiphone 3</string>
+    <string name="appicon">appicon</string>
 </resources>

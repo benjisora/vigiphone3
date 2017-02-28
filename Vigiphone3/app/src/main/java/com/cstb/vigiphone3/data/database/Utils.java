@@ -12,7 +12,6 @@ import com.raizlabs.android.dbflow.sql.language.SQLite;
 
 import java.util.List;
 
-import static com.raizlabs.android.dbflow.sql.language.Method.count;
 
 public class Utils {
 

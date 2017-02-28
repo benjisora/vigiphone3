@@ -6,16 +6,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.location.Location;
 import android.os.Bundle;
-import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.widget.CardView;
 import android.text.InputType;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -28,12 +25,10 @@ import com.afollestad.materialdialogs.DialogAction;
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.cstb.vigiphone3.R;
 import com.cstb.vigiphone3.data.database.Utils;
-import com.cstb.vigiphone3.data.model.RecordingRow;
-import com.cstb.vigiphone3.service.ServiceManager;
+import com.cstb.vigiphone3.service.RecordService;
 import com.ikovac.timepickerwithseconds.MyTimePickerDialog;
 import com.ikovac.timepickerwithseconds.TimePicker;
 
-import java.util.List;
 import java.util.Locale;
 import java.util.regex.Pattern;
 
@@ -128,6 +123,29 @@ public class RecordingFragment extends Fragment {
         }
     };
 
+    private BroadcastReceiver mDatabaseUpdate = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            long size = Utils.getinstance().getRecordingRowsCount();
+            databaseText.setText(String.valueOf(size));
+            databaseSumupText.setText(String.valueOf(size));
+        }
+    };
+
+    private BroadcastReceiver mEndRecordingReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            //SP.edit().putBoolean("isRecording", false).apply();
+            showRootComponents();
+            recordButton.setText(R.string.start_recording);
+
+            long size = Utils.getinstance().getRecordingRowsCount();
+            databaseText.setText(String.valueOf(size));
+            databaseSumupText.setText(String.valueOf(size));
+
+        }
+    };
+
     public RecordingFragment() {
     }
 
@@ -138,7 +156,11 @@ public class RecordingFragment extends Fragment {
         ButterKnife.bind(this, view);
         SP = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
         initalizeViews();
+
+
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mUpdateTimeReceiver, new IntentFilter("updateTime"));
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mDatabaseUpdate, new IntentFilter("updateDatabase"));
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mEndRecordingReceiver, new IntentFilter("endRecording"));
         return view;
     }
 
@@ -146,6 +168,7 @@ public class RecordingFragment extends Fragment {
     public void onDestroy() {
         super.onDestroy();
         LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mUpdateTimeReceiver);
+        LocalBroadcastManager.getInstance(getActivity()).unregisterReceiver(mDatabaseUpdate);
     }
 
     private void initalizeViews() {
@@ -154,12 +177,15 @@ public class RecordingFragment extends Fragment {
 
         if (isAlreadyRecording) {
             hideRootComponents();
+            recordButton.setText(getString(R.string.stop_recording));
+        } else {
+            recordButton.setText(getString(R.string.start_recording));
         }
 
         boolean recordingInfinitely = SP.getBoolean("recordingInfinitely", true);
         boolean saveOnServer = SP.getBoolean("saveOnServer", true);
 
-        if(recordingInfinitely){
+        if (recordingInfinitely) {
             timeLabel.setVisibility(View.GONE);
             timeText.setVisibility(View.GONE);
             timeButton.setVisibility(View.GONE);
@@ -169,10 +195,10 @@ public class RecordingFragment extends Fragment {
             timeText.setVisibility(View.VISIBLE);
             timeButton.setVisibility(View.VISIBLE);
             int value = SP.getInt("recordTime", 10000);
-            timeSumupText.setText(formatMillisecondsToString(value));
+            timeText.setText(formatMillisecondsToString(value));
         }
 
-        if(saveOnServer){
+        if (saveOnServer) {
             nameButton.setVisibility(View.GONE);
             nameLabel.setVisibility(View.GONE);
             nameText.setVisibility(View.GONE);
@@ -191,13 +217,19 @@ public class RecordingFragment extends Fragment {
                         timeLabel.setVisibility(View.GONE);
                         timeText.setVisibility(View.GONE);
                         timeButton.setVisibility(View.GONE);
+
+                        timeSumupText.setText(R.string.button_click);
+
                         break;
                     case R.id.time_limited:
                         SP.edit().putBoolean("recordingInfinitely", false).apply();
                         timeLabel.setVisibility(View.VISIBLE);
                         timeText.setVisibility(View.VISIBLE);
                         timeButton.setVisibility(View.VISIBLE);
-                        if(!isvalidTime(SP.getInt("stepTime", 1000), SP.getInt("recordTime", 10000))) {
+
+                        timeSumupText.setText(formatMillisecondsToString(SP.getInt("recordTime", 10000)));
+
+                        if (!isvalidTime(SP.getInt("stepTime", 1000), SP.getInt("recordTime", 10000))) {
                             SP.edit().putInt("stepTime", 1000).putInt("recordTime", 10000).apply();
 
                             int value = SP.getInt("stepTime", 1000);
@@ -206,6 +238,7 @@ public class RecordingFragment extends Fragment {
 
                             value = SP.getInt("recordTime", 10000);
                             timeText.setText(formatMillisecondsToString(value));
+                            timeSumupText.setText(formatMillisecondsToString(value));
 
                             Toast.makeText(getActivity(), R.string.revert_default_times, Toast.LENGTH_LONG).show();
                         }
@@ -252,12 +285,13 @@ public class RecordingFragment extends Fragment {
 
         String name = SP.getString("fileName", "default");
         nameText.setText(name);
+
     }
 
-    private boolean isvalidTime(int step, int record){
-        if(SP.getBoolean("recordingInfinitely", true)){
+    private boolean isvalidTime(int step, int record) {
+        if (SP.getBoolean("recordingInfinitely", true)) {
             return true;
-        }else if(step <= record){
+        } else if (step <= record) {
             return true;
         }
         return false;
@@ -310,7 +344,7 @@ public class RecordingFragment extends Fragment {
     @OnClick(R.id.threshold_button)
     public void thresholdButton() {
         new MaterialDialog.Builder(getActivity())
-                .title("Choose a transfer threshold")
+                .title(R.string.choose_threshold)
                 .inputRange(1, 5)
                 .alwaysCallInputCallback()
                 .inputType(InputType.TYPE_CLASS_NUMBER)
@@ -325,9 +359,9 @@ public class RecordingFragment extends Fragment {
                 .input(String.valueOf(SP.getInt("threshold", 100)), null, new MaterialDialog.InputCallback() {
                     @Override
                     public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
-                        if(!isFilenameValid(input.toString())){
+                        if (!isFilenameValid(input.toString())) {
                             dialog.getActionButton(DialogAction.POSITIVE).setEnabled(false);
-                        } else{
+                        } else {
                             dialog.getActionButton(DialogAction.POSITIVE).setEnabled(true);
                             threshold = Integer.parseInt(input.toString());
                         }
@@ -374,8 +408,7 @@ public class RecordingFragment extends Fragment {
     private void setStep(int hourOfDay, int minute, int seconds) {
         if (hourOfDay + minute + seconds != 0) {
             int timeMilliseconds = seconds * 1000 + minute * (1000 * 60) + hourOfDay * (1000 * 60 * 60);
-
-            if(isvalidTime(timeMilliseconds, SP.getInt("recordTime", 10000))) {
+            if (isvalidTime(timeMilliseconds, SP.getInt("recordTime", 10000))) {
                 SP.edit().putInt("stepTime", timeMilliseconds).apply();
                 String text = String.format(Locale.ENGLISH, "%02d", hourOfDay) + "h"
                         + String.format(Locale.ENGLISH, "%02d", minute) + "m"
@@ -393,8 +426,7 @@ public class RecordingFragment extends Fragment {
     private void setRecordTime(int hourOfDay, int minute, int seconds) {
         if (hourOfDay + minute + seconds != 0) {
             int timeMilliseconds = seconds * 1000 + minute * (1000 * 60) + hourOfDay * (1000 * 60 * 60);
-
-            if(isvalidTime(SP.getInt("stepTime", 1000), timeMilliseconds)){
+            if (isvalidTime(SP.getInt("stepTime", 1000), timeMilliseconds)) {
                 SP.edit().putInt("recordTime", timeMilliseconds).apply();
                 String text = String.format(Locale.ENGLISH, "%02d", hourOfDay) + "h"
                         + String.format(Locale.ENGLISH, "%02d", minute) + "m"
@@ -404,7 +436,6 @@ public class RecordingFragment extends Fragment {
             } else {
                 Toast.makeText(getActivity(), R.string.duration_smaller_step, Toast.LENGTH_SHORT).show();
             }
-
         } else {
             Toast.makeText(getActivity(), R.string.time_null, Toast.LENGTH_SHORT).show();
         }
@@ -426,9 +457,9 @@ public class RecordingFragment extends Fragment {
                 .input(SP.getString("fileName", "default"), null, new MaterialDialog.InputCallback() {
                     @Override
                     public void onInput(@NonNull MaterialDialog dialog, CharSequence input) {
-                        if(!isFilenameValid(input.toString())){
+                        if (!isFilenameValid(input.toString())) {
                             dialog.getActionButton(DialogAction.POSITIVE).setEnabled(false);
-                        } else{
+                        } else {
                             dialog.getActionButton(DialogAction.POSITIVE).setEnabled(true);
                             filename = input.toString();
                         }
@@ -452,30 +483,12 @@ public class RecordingFragment extends Fragment {
             recordButton.setText(R.string.stop_recording);
             SP.edit().putBoolean("isRecording", true).apply();
 
-            Intent intent = new Intent("startRecording");
-            LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
+            getActivity().startService(new Intent(getActivity(), RecordService.class));
 
         } else {
-            //TODO: stop recording
-            SP.edit().putBoolean("isRecording", false).apply();
-            showRootComponents();
-            recordButton.setText(R.string.start_recording);
-
             Intent intent = new Intent("stopRecording");
             LocalBroadcastManager.getInstance(getActivity()).sendBroadcast(intent);
-
-            long size = Utils.getinstance().getRecordingRowsCount();
-            databaseText.setText(String.valueOf(size));
-            databaseSumupText.setText(String.valueOf(size));
-
-            List<RecordingRow> list = Utils.getinstance().getAllRecordingRows();
-
-            for(int i = 0; i < list.size(); i++){
-                Log.d("Liste", "ligne " + i + ": " + list.get(i).getDate());
-            }
-
         }
     }
-
 
 }

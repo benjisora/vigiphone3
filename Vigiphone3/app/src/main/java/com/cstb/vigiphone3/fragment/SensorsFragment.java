@@ -6,9 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.hardware.Sensor;
 import android.hardware.SensorManager;
-import android.location.Location;
 import android.os.Bundle;
 import android.os.Handler;
 import android.preference.PreferenceManager;
@@ -25,8 +23,6 @@ import com.afollestad.materialdialogs.MaterialDialog;
 import com.cstb.vigiphone3.R;
 import com.cstb.vigiphone3.data.model.RecordingRow;
 import com.cstb.vigiphone3.service.SensorService;
-import com.cstb.vigiphone3.service.ServiceManager;
-import com.cstb.vigiphone3.ui.MainActivity;
 
 import java.util.Locale;
 

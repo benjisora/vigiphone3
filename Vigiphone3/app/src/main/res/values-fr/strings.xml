@@ -43,7 +43,7 @@
     <string name="start_recording">Lancer un enregistrement</string>
     <string name="watch_the_sensors">Observer les capteurs</string>
     <string name="camera_mode">Mode caméra</string>
-    <string name="fetching">acquisition...</string>
+    <string name="fetching">acquisition…</string>
     <string name="ends_after">Finit après :</string>
     <string name="file_name">Nom du fichier :</string>
     <string name="choose_file_name">Choisir un nom de fichier</string>
@@ -65,4 +65,13 @@
     <string name="sensors_fragment_title">Capteurs</string>
     <string name="settings_button_text">Paramètres</string>
     <string name="uncalibrate">Décalibrer</string>
+    <string name="button_click">Arrêt manuel</string>
+    <string name="choose_threshold">Choisir un seuil de transfert</string>
+    <string name="duration_smaller_step">La durée d\'enregistrement est plus courte que le pas</string>
+    <string name="record_and_transfer">Enregistrement et transfert en cours…</string>
+    <string name="recording">Enregistrement en cours…</string>
+    <string name="revert_default_times">La durée d\'enregistrement est plus courte que le pas, retour aux valeurs par défaut</string>
+    <string name="stop_recording">Stopper l\'enregistrement</string>
+    <string name="time_null">Temps nul</string>
+    <string name="transfer">Transfert en cours…</string>
 </resources>

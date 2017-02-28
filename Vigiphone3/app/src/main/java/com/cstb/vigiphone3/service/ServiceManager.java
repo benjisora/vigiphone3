@@ -8,7 +8,6 @@ import android.hardware.Sensor;
 import android.location.Location;
 import android.os.Build;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import com.cstb.vigiphone3.data.model.RecordingRow;
 
@@ -16,10 +15,6 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-
-/**
- * Created by saugues on 21/02/17.
- */
 
 public class ServiceManager {
 
@@ -63,7 +58,6 @@ public class ServiceManager {
     private BroadcastReceiver mSaveRecordingRow = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d("RecordService", "saving...");
             saveRecordingRow((long) intent.getExtras().get("time"));
         }
     };
@@ -148,14 +142,12 @@ public class ServiceManager {
         context.startService(new Intent(context, SensorService.class));
         context.startService(new Intent(context, SignalService.class));
         context.startService(new Intent(context, LocationService.class));
-        context.startService(new Intent(context, RecordService.class));
     }
 
     public void stopServices() {
         context.stopService(new Intent(context, SensorService.class));
         context.stopService(new Intent(context, SignalService.class));
         context.stopService(new Intent(context, LocationService.class));
-        context.stopService(new Intent(context, RecordService.class));
     }
 
     public void registerReceivers() {

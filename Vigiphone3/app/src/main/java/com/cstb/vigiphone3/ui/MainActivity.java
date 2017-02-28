@@ -19,6 +19,7 @@ import com.cstb.vigiphone3.R;
 import com.cstb.vigiphone3.fragment.MapsFragment;
 import com.cstb.vigiphone3.fragment.RecordingFragment;
 import com.cstb.vigiphone3.fragment.SensorsFragment;
+import com.cstb.vigiphone3.service.RecordService;
 import com.cstb.vigiphone3.service.ServiceManager;
 
 import butterknife.BindView;
@@ -48,7 +49,7 @@ public class MainActivity extends ActivityManagePermission
         ButterKnife.bind(this);
         setSupportActionBar(toolbar);
 
-        if (!isPermissionsGranted(MainActivity.this, new String[]{PermissionUtils.Manifest_ACCESS_FINE_LOCATION, PermissionUtils.Manifest_READ_PHONE_STATE, PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE})) {
+        if (!isPermissionsGranted(MainActivity.this, new String[]{PermissionUtils.Manifest_ACCESS_FINE_LOCATION, PermissionUtils.Manifest_ACCESS_COARSE_LOCATION, PermissionUtils.Manifest_READ_PHONE_STATE, PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE})) {
             askForNeededPermissions(getString(R.string.permissions_needed_title), getString(R.string.permissions_needed_text));
         } else {
             createServiceManager();
@@ -83,6 +84,7 @@ public class MainActivity extends ActivityManagePermission
     protected void onDestroy() {
         super.onDestroy();
         stopServiceManager();
+        stopService(new Intent(MainActivity.this, RecordService.class));
     }
 
     @Override
@@ -113,8 +115,8 @@ public class MainActivity extends ActivityManagePermission
                 fragmentClass = MapsFragment.class;
                 break;
             //case R.id.nav_camera:
-            //toolbar.setTitle("Camera");
-            //fragmentClass = RecordingFragment.class;
+                //toolbar.setTitle("Camera");
+                //fragmentClass = RecordingFragment.class;
             //break;
             case R.id.nav_settings:
                 intent = new Intent(MainActivity.this, SettingsActivity.class);
@@ -173,7 +175,7 @@ public class MainActivity extends ActivityManagePermission
                 .onPositive(new MaterialDialog.SingleButtonCallback() {
                     @Override
                     public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        askCompactPermissions(new String[]{PermissionUtils.Manifest_ACCESS_FINE_LOCATION, PermissionUtils.Manifest_READ_PHONE_STATE, PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE}, new PermissionResult() {
+                        askCompactPermissions(new String[]{PermissionUtils.Manifest_ACCESS_FINE_LOCATION, PermissionUtils.Manifest_READ_PHONE_STATE, PermissionUtils.Manifest_ACCESS_COARSE_LOCATION, PermissionUtils.Manifest_WRITE_EXTERNAL_STORAGE}, new PermissionResult() {
                             @Override
                             public void permissionGranted() {
                                 createServiceManager();
