@@ -28,6 +28,7 @@ import permission.auron.com.marshmallowpermissionhelper.ActivityManagePermission
 import permission.auron.com.marshmallowpermissionhelper.PermissionResult;
 import permission.auron.com.marshmallowpermissionhelper.PermissionUtils;
 
+/** Handles the NavigationDrawer, the permissions, and the serviceManager. */
 public class MainActivity extends ActivityManagePermission
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -42,6 +43,11 @@ public class MainActivity extends ActivityManagePermission
 
     private ServiceManager serviceManager;
 
+    /**
+     * {@inheritDoc}
+     *
+     * Asks for permissions if not already given.
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -69,12 +75,20 @@ public class MainActivity extends ActivityManagePermission
 
     }
 
+    /**
+     * Initializes the serviceManager, starts the different services,
+     * and register the LocalBroadcasts intents.
+     */
     private void createServiceManager() {
         serviceManager = new ServiceManager(MainActivity.this);
         serviceManager.registerReceivers();
         serviceManager.startServices();
     }
 
+    /**
+     * Unregisters the serviceManager's Listeners,
+     * and stops its services.
+     */
     private void stopServiceManager() {
         serviceManager.unregisterReceivers();
         serviceManager.stopServices();
@@ -87,6 +101,11 @@ public class MainActivity extends ActivityManagePermission
         stopService(new Intent(MainActivity.this, RecordService.class));
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Makes sure the app isn't killed if back button is pressed.
+     */
     @Override
     public void onBackPressed() {
         if (drawer.isDrawerOpen(GravityCompat.START)) {
@@ -96,6 +115,11 @@ public class MainActivity extends ActivityManagePermission
         }
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Selects the right Fragment to load.
+     */
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         Class fragmentClass = null;
@@ -134,6 +158,7 @@ public class MainActivity extends ActivityManagePermission
         return true;
     }
 
+    /** Tries to load the correct fragment. */
     public void loadFragment(Class c) {
         try {
             Fragment fragment = null;
@@ -151,21 +176,7 @@ public class MainActivity extends ActivityManagePermission
         }
     }
 
-    private void showPermissionDialogDenied(String title, String text) {
-        new MaterialDialog.Builder(this)
-                .title(title)
-                .content(text)
-                .positiveText(R.string.settings_button_text)
-                .cancelable(false)
-                .onPositive(new MaterialDialog.SingleButtonCallback() {
-                    @Override
-                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
-                        openSettingsApp(MainActivity.this);
-                    }
-                })
-                .show();
-    }
-
+    /** Displays a dialog asking to enable permissions. */
     private void askForNeededPermissions(String title, String text) {
         new MaterialDialog.Builder(this)
                 .title(title)
@@ -191,6 +202,22 @@ public class MainActivity extends ActivityManagePermission
                                 showPermissionDialogDenied(getString(R.string.permissions_permanently_denied), getString(R.string.permissions_permanently_denied_text));
                             }
                         });
+                    }
+                })
+                .show();
+    }
+
+    /** Displays a dialog asking to enable the disabled permissions through Settings. */
+    private void showPermissionDialogDenied(String title, String text) {
+        new MaterialDialog.Builder(this)
+                .title(title)
+                .content(text)
+                .positiveText(R.string.settings_button_text)
+                .cancelable(false)
+                .onPositive(new MaterialDialog.SingleButtonCallback() {
+                    @Override
+                    public void onClick(@NonNull MaterialDialog dialog, @NonNull DialogAction which) {
+                        openSettingsApp(MainActivity.this);
                     }
                 })
                 .show();

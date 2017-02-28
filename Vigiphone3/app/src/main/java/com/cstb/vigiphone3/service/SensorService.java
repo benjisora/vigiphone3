@@ -12,6 +12,7 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+/** Service listening for the Cell Infos, and notifying the ServiceManger when needed */
 public class SensorService extends Service implements SensorEventListener {
 
     private SensorManager sensorManager;
@@ -24,16 +25,19 @@ public class SensorService extends Service implements SensorEventListener {
 
     private SharedPreferences SP;
 
+    /** {@inheritDoc} */
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void onCreate() {
         Log.d("SensorService", "Service started");
     }
 
+    /** {@inheritDoc} */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -42,6 +46,12 @@ public class SensorService extends Service implements SensorEventListener {
         return Service.START_STICKY;
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Gets the value from the sensors, calibrates it if needed,
+     * and sends the value to ServiceManager.
+     */
     @Override
     public void onSensorChanged(SensorEvent sensorEvent) {
 
@@ -58,6 +68,11 @@ public class SensorService extends Service implements SensorEventListener {
         }
     }
 
+    /**
+     * Samples the data to reduce the noise when the phone is still.
+     *
+     * @param sensorEvent the sensor object gotten from the Listener.
+     */
     private void getCalibratedData(SensorEvent sensorEvent) {
         switch (sensorEvent.sensor.getType()) {
 
@@ -162,6 +177,11 @@ public class SensorService extends Service implements SensorEventListener {
         }
     }
 
+    /**
+     * Sets and sends the calibrated data if the mode is enabled.
+     *
+     * @param sensorEvent the sensor object gotten from the Listener.
+     */
     private void sendCalibratedData(SensorEvent sensorEvent) {
 
         float calibratedDa = SP.getFloat("calibratedDa", 1);
@@ -194,6 +214,7 @@ public class SensorService extends Service implements SensorEventListener {
         }
     }
 
+    /** Calibrates the sensor value. */
     public static float calibrate(float f) {
         float result;
         boolean b = false;
@@ -239,6 +260,11 @@ public class SensorService extends Service implements SensorEventListener {
         return result;
     }
 
+    /**
+     * Calculates the calibrating delta change.
+     *
+     * @return the delta change of the Accelerometer.
+     */
     public static float getDa() {
         float i = accelerometerMax[0] - accelerometerMin[0];
         float j = accelerometerMax[1] - accelerometerMin[1];
@@ -248,6 +274,11 @@ public class SensorService extends Service implements SensorEventListener {
         return da;
     }
 
+    /**
+     * Calculates the calibrating delta change.
+     *
+     * @return the delta change of the Gyroscope.
+     */
     public static float getDg() {
         float i = gyroscopeMax[0] - gyroscopeMin[0];
         float j = gyroscopeMax[1] - gyroscopeMin[1];
@@ -257,6 +288,11 @@ public class SensorService extends Service implements SensorEventListener {
         return dg;
     }
 
+    /**
+     * Calculates the calibrating delta change.
+     *
+     * @return the delta change of the Magnetic Field.
+     */
     public static float getDm() {
         float i = magneticFieldMax[0] - magneticFieldMin[0];
         float j = magneticFieldMax[1] - magneticFieldMin[1];
@@ -266,17 +302,19 @@ public class SensorService extends Service implements SensorEventListener {
         return dm;
     }
 
+    /** {@inheritDoc} */
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
-
     }
 
+    /** {@inheritDoc} */
     @Override
     public void onDestroy() {
         Log.d("SensorService", "Service stopped");
         sensorManager.unregisterListener(this);
     }
 
+    
     public void listenToAllSensors() {
         listenToSensorIfChecked(Sensor.TYPE_ACCELEROMETER);
         listenToSensorIfChecked(Sensor.TYPE_GYROSCOPE);
