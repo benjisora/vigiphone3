@@ -17,33 +17,40 @@ import android.telephony.gsm.GsmCellLocation;
 import android.util.Log;
 
 import com.cstb.vigiphone3.R;
+import com.cstb.vigiphone3.data.database.MyApplication;
 
 import java.lang.reflect.Method;
 import java.util.List;
 
-/** Service listening for the Cell Infos, and notifying the ServiceManger when needed */
+/**
+ * Service listening for the Cell Infos, and notifying the ServiceManger when needed
+ */
 public class SignalService extends Service {
 
     private TelephonyManager telephonyManager;
     private MyPhoneStateListener myPhoneStateListener;
     private String deviceId = "";
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onCreate() {
         Log.d("SignalService", "Service started");
     }
 
     /**
-     *  {@inheritDoc}
-     *
-     *  Initializes the Signal Listener.
+     * {@inheritDoc}
+     * <p>
+     * Initializes the Signal Listener.
      */
     @SuppressLint("HardwareIds")
     @Override
@@ -58,7 +65,9 @@ public class SignalService extends Service {
         return Service.START_STICKY;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void onDestroy() {
         Log.d("SignalService", "Service stopped");
@@ -68,18 +77,18 @@ public class SignalService extends Service {
     /**
      * Sends the parameters to the ServiceManager.
      *
-     * @param deviceId the id of the device used.
-     * @param CID the cellID.
-     * @param LAC the Location Area Code.
-     * @param MCC the Mobile Country Code.
-     * @param MNC the Mobile Network Code.
+     * @param deviceId    the id of the device used.
+     * @param CID         the cellID.
+     * @param LAC         the Location Area Code.
+     * @param MCC         the Mobile Country Code.
+     * @param MNC         the Mobile Network Code.
      * @param networkName the network Name.
      * @param networkType the network Type.
-     * @param neighbours the possible emitters neighbours.
-     * @param strength the signal strength.
+     * @param neighbours  the possible emitters neighbours.
+     * @param strength    the signal strength.
      */
     public void sendMessageToActivity(String deviceId, int CID, int LAC, int MCC, int MNC, String networkName, String networkType, String neighbours, int strength) {
-        Intent intent = new Intent("SignalChanged");
+        Intent intent = new Intent(MyApplication.signalChangedFromSignalService);
         intent.putExtra("deviceId", deviceId);
         intent.putExtra("cid", CID);
         intent.putExtra("lac", LAC);
@@ -100,7 +109,9 @@ public class SignalService extends Service {
         sendMessageToActivity(deviceId, myPhoneStateListener.CID, myPhoneStateListener.LAC, myPhoneStateListener.MCC, myPhoneStateListener.MNC, myPhoneStateListener.networkName, myPhoneStateListener.networkType, myPhoneStateListener.neighbours, myPhoneStateListener.strength);
     }
 
-    /** Class listening from the CellTower sensors. */
+    /**
+     * Class listening from the CellTower sensors.
+     */
     @SuppressWarnings("deprecation")
     public class MyPhoneStateListener extends PhoneStateListener {
 
@@ -115,9 +126,9 @@ public class SignalService extends Service {
                 CID = ((GsmCellLocation) telephonyManager.getCellLocation()).getCid();
                 LAC = ((GsmCellLocation) telephonyManager.getCellLocation()).getLac();
             }
-            if (telephonyManager.getNetworkOperator() != null && !telephonyManager.getNetworkOperator().isEmpty()) {
+            if (telephonyManager.getNetworkOperator() != null && !telephonyManager.getNetworkOperator().isEmpty() && telephonyManager.getNetworkOperator().length() >= 4) {
                 MCC = Integer.parseInt(telephonyManager.getNetworkOperator().substring(0, 3));
-                MNC = Integer.parseInt(telephonyManager.getNetworkOperator().substring(3, telephonyManager.getNetworkOperator().length()));
+                MNC = Integer.parseInt(telephonyManager.getNetworkOperator().substring(3));
             }
             if (telephonyManager.getNetworkOperatorName() != null && !telephonyManager.getNetworkOperatorName().isEmpty()) {
                 networkName = telephonyManager.getNetworkOperatorName();
@@ -163,6 +174,7 @@ public class SignalService extends Service {
 
         /**
          * {@inheritDoc}
+         *
          * @param location the new location gotten from the Listener.
          */
         public void onCellLocationChanged(CellLocation location) {
@@ -173,6 +185,7 @@ public class SignalService extends Service {
 
         /**
          * {@inheritDoc}
+         *
          * @param signalStrength the new strength gotten from the Listener.
          */
         public void onSignalStrengthsChanged(SignalStrength signalStrength) {

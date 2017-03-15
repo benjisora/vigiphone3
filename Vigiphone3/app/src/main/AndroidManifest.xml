@@ -9,6 +9,7 @@
     <!-- GPS -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+
     <uses-feature android:name="android.hardware.location.gps" />
 
     <!-- Notification -->
@@ -20,16 +21,17 @@
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <!-- Boot Completed -->
-    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
 
     <application
         android:name=".data.database.MyApplication"
         android:allowBackup="true"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@mipmap/appicon"
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
+
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCP6RjVRFd8r-iyPDySTzkkwvOdFaaBqko" />
@@ -62,11 +64,13 @@
             android:enabled="true" />
         <service
             android:name=".service.RecordService"
-            android:enabled="true"/>
+            android:enabled="true" />
+
+        <service android:name="com.mapbox.mapboxsdk.telemetry.TelemetryService" />
 
         <receiver android:name=".service.BootCompleteReceiver">
             <intent-filter>
-                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
             </intent-filter>
         </receiver>
 

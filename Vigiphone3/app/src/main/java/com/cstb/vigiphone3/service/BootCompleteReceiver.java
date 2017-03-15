@@ -3,16 +3,22 @@ package com.cstb.vigiphone3.service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 
+import com.cstb.vigiphone3.data.database.MyApplication;
 
+/**
+ * BootCompleteReceiver class, used to check if the phone went off while recording
+ */
 public class BootCompleteReceiver extends BroadcastReceiver {
+
+    /**
+     * {@inheritDoc}
+     * Sets the recording to false if it was recording before shutdown
+     */
     @Override
     public void onReceive(Context context, Intent intent) {
-        SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(context);
-        if (SP.getBoolean("isRecording", false)) {
-            SP.edit().putBoolean("isRecording", false).apply();
+        if (MyApplication.isRecording()) {
+            MyApplication.setRecording(false);
         }
     }
 }

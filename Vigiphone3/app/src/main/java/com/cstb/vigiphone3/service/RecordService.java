@@ -5,10 +5,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Handler;
 import android.os.IBinder;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.NotificationCompat;
 import android.util.Log;
@@ -20,6 +18,9 @@ import com.cstb.vigiphone3.data.model.RecordingRow;
 import com.cstb.vigiphone3.network.NetworkService;
 import com.cstb.vigiphone3.ui.MainActivity;
 
+import java.io.File;
+import java.io.FileWriter;
+import java.net.HttpURLConnection;
 import java.util.List;
 
 import br.com.goncalves.pugnotification.notification.Load;
@@ -32,19 +33,21 @@ public class RecordService extends Service {
 
     private final Handler recordHandler = new Handler();
     private final Handler tickerHandler = new Handler();
+    List<RecordingRow> allData;
     private Runnable saveRunnableCode;
     private NetworkService networkService;
     private Call<RecordingRow> sendRecordings = null;
-    private SharedPreferences SP;
     private PugNotification notification;
     private Load load;
-    List<RecordingRow> allData;
 
+    /**
+     * Stops the recording whenever the order is received
+     */
     private BroadcastReceiver mStopReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             Log.d("RecordService", "stop recording");
-            SP.edit().putBoolean("isRecording", false).apply();
+            MyApplication.setRecording(false);
             recordHandler.removeCallbacksAndMessages(null);
             tickerHandler.removeCallbacksAndMessages(null);
             load.message(R.string.transfer).simple().build();
@@ -66,9 +69,12 @@ public class RecordService extends Service {
         Log.d("RecordService", "service created");
     }
 
+    /**
+     * {@inheritDoc}
+     * Creates a notification and saves data into the database
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        SP = PreferenceManager.getDefaultSharedPreferences(this.getBaseContext());
         startListening();
         networkService = MyApplication.getNetworkServiceInstance();
         notification = PugNotification.with(this);
@@ -103,40 +109,45 @@ public class RecordService extends Service {
         Log.d("RecordService", "service stopped");
         stopListening();
         notification.cancel(1);
-        SP.edit().putBoolean("isRecording", false).apply();
+        MyApplication.setRecording(false);
         if (sendRecordings != null) {
             sendRecordings.cancel();
         }
     }
 
     private void startListening() {
-        LocalBroadcastManager.getInstance(this).registerReceiver(mStopReceiver, new IntentFilter("stopRecording"));
+        LocalBroadcastManager.getInstance(this).registerReceiver(mStopReceiver, new IntentFilter(MyApplication.stopRecordingFromRecordingFragment));
     }
 
     private void stopListening() {
         LocalBroadcastManager.getInstance(this).unregisterReceiver(mStopReceiver);
     }
 
+    /**
+     * Saves data to the database periodically
+     */
     public void saveDataPeriodically() {
         final Long startTimeStamp = System.currentTimeMillis();
         Runnable runnableCode = new Runnable() {
             @Override
             public void run() {
-                boolean shouldSave = (SP.getBoolean("isRecording", false) && (SP.getBoolean("recordingInfinitely", true) || (!SP.getBoolean("recordingInfinitely", true) && System.currentTimeMillis() < startTimeStamp + SP.getInt("recordTime", 10000))));
+                boolean shouldSave = (MyApplication.isRecording() && (MyApplication.isRecordingInfinitely() || (!MyApplication.isRecordingInfinitely() && System.currentTimeMillis() < startTimeStamp + MyApplication.getRecordTime())));
                 if (shouldSave) {
 
-                    if (Utils.getinstance().getRecordingRowsCount() == SP.getInt("threshold", 100)) {
+                    long databaseCount = Utils.getinstance().getRecordingRowsCount();
+
+                    if (databaseCount != 0 && databaseCount % MyApplication.getThreshold() == 0) {
                         load.message(R.string.record_and_transfer).simple().build();
                         recordHandler.post(saveRunnableCode);
                     }
 
-                    sendUpdateMessage("saveRecordingRow", System.currentTimeMillis());
+                    sendUpdateMessage(MyApplication.saveRowFromRecordService, System.currentTimeMillis());
 
-                    recordHandler.postDelayed(this, SP.getInt("stepTime", 1000));
+                    recordHandler.postDelayed(this, MyApplication.getStep());
 
                 } else {
                     Log.d("RecordService", "stop the recording");
-                    SP.edit().putBoolean("isRecording", false).apply();
+                    MyApplication.setRecording(false);
                     recordHandler.removeCallbacks(this);
                     load.message(R.string.transfer).simple().build();
                     sendEndRecording();
@@ -149,8 +160,8 @@ public class RecordService extends Service {
         final Runnable ticker = new Runnable() {
             @Override
             public void run() {
-                if(SP.getBoolean("isRecording",false)){
-                    sendUpdateMessage("updateTime", System.currentTimeMillis() - startTimeStamp);
+                if (MyApplication.isRecording()) {
+                    sendUpdateMessage(MyApplication.updateTimeFromRecordService, System.currentTimeMillis() - startTimeStamp);
                     tickerHandler.postDelayed(this, 1000);
                 } else {
                     tickerHandler.removeCallbacks(this);
@@ -160,18 +171,21 @@ public class RecordService extends Service {
         tickerHandler.post(ticker);
     }
 
+    /**
+     * Sends the database to the chosen destination
+     */
     private void sendDataToDestination() {
         Log.d("RecordService", "Start saving onto destination");
-        boolean shouldSaveOnServer = SP.getBoolean("saveOnServer", true);
-        if (shouldSaveOnServer) {
+
+        if (MyApplication.isSavingOnServer()) {
             if (Utils.canWeConnect(RecordService.this)) {
 
-                if (SP.getBoolean("isRecording", false)) {
+                if (MyApplication.isRecording()) {
                     load.message(R.string.record_and_transfer).simple().build();
                 } else {
                     load.message(R.string.transfer).simple().build();
                 }
-                startSend();
+                sendToServer();
             } else {
                 Log.e("RecordService", "No connection available");
             }
@@ -180,30 +194,102 @@ public class RecordService extends Service {
         }
     }
 
+    /**
+     * Writes the database to a local file ( /android/data/com.cstb.vigiphone/ )
+     */
     private void sendToFile() {
 
+        List<RecordingRow> listToSave = Utils.getinstance().getAllRecordingRows();
+
+
+        File file = new File(getExternalFilesDir(null), MyApplication.getFileName() + ".txt");
+
+        Log.d("SENDFILE", file.getPath());
+
+        if (file.exists()) {
+            try {
+                FileWriter filewriter = new FileWriter(file, true);
+                filewriter.append(XMLFromRecordingRows(listToSave));
+                for (RecordingRow r : listToSave) {
+                    r.delete();
+                }
+                filewriter.flush();
+                filewriter.close();
+            } catch (Exception e) {
+                Log.e("RecordService", "Error editing file : ", e);
+            }
+        } else {
+            try {
+                boolean didCreateFile = file.createNewFile();
+
+                if (didCreateFile) {
+                    FileWriter filewriter = new FileWriter(file);
+                    filewriter.write(XMLFromRecordingRows(listToSave));
+                    for (RecordingRow r : listToSave) {
+                        r.delete();
+                    }
+                    filewriter.flush();
+                    filewriter.close();
+                }
+            } catch (Exception e) {
+                Log.e("RecordService", "Error creating file : ", e);
+            }
+        }
+        if (MyApplication.isRecording()) {
+            load.message(R.string.recording).simple().build();
+        } else {
+            notification.cancel(1);
+            stopSelf();
+        }
     }
 
-    private void startSend() {
+    /**
+     * Creates a string containing all the xml description of each RecordingRow
+     *
+     * @param list The list of RecordingRow to convert
+     * @return The string to save into the file
+     */
+    private String XMLFromRecordingRows(List<RecordingRow> list) {
+        String valueToWrite = "";
+        for (RecordingRow r : list) {
+            valueToWrite += r.XMLDescription();
+        }
+        return valueToWrite;
+    }
+
+    /**
+     * Sends the database to the remote server
+     */
+    private void sendToServer() {
         allData = Utils.getinstance().getAllRecordingRows();
-        sendData(0, allData);
+        sendDataToServer(0, allData);
     }
 
-    private void sendData(final int index, final List<RecordingRow> listTosend) {
-        if (!listTosend.isEmpty()) {
+    /**
+     * Recusrively sends each RecordingRow from the database to the remote server
+     *
+     * @param index      The index of the RecordingRow to send
+     * @param listToSend The List to recursively send
+     */
+    private void sendDataToServer(final int index, final List<RecordingRow> listToSend) {
+        if (!listToSend.isEmpty()) {
 
-            sendRecordings = networkService.sendRecording(listTosend.get(index));
+            sendRecordings = networkService.sendRecording(listToSend.get(index));
             sendRecordings.enqueue(new Callback<RecordingRow>() {
                 @Override
                 public void onResponse(Call<RecordingRow> call, Response<RecordingRow> response) {
-                    Log.d("RecordService", String.valueOf(response.code()) + " : " + listTosend.get(0).getId());
-                    listTosend.get(index).delete();
-                    listTosend.remove(index);
-                    sendUpdateMessage("updateDatabase", null);
-                    if (!listTosend.isEmpty()) {
-                        sendData(0, listTosend);
+
+                    if (response.code() == HttpURLConnection.HTTP_OK) {
+                        listToSend.get(index).delete();
                     } else {
-                        if (SP.getBoolean("isRecording", false)) {
+                        Log.d("RecordService", "Error code " + String.valueOf(response.code()) + ", address : " + call.request().url());
+                    }
+                    listToSend.remove(index);
+                    sendUpdateMessage(MyApplication.updateDatabaseFromRecordService, null);
+                    if (!listToSend.isEmpty()) {
+                        sendDataToServer(0, listToSend);
+                    } else {
+                        if (MyApplication.isRecording()) {
                             load.message(R.string.recording).simple().build();
                         } else {
                             notification.cancel(1);
@@ -214,8 +300,8 @@ public class RecordService extends Service {
 
                 @Override
                 public void onFailure(Call<RecordingRow> call, Throwable t) {
-                    Log.e("RecordService", "Error during transfer, data will be kept until next try");
-                    if (SP.getBoolean("isRecording", false)) {
+                    Log.e("RecordService", "Error during transfer, data will be kept until next try", t);
+                    if (MyApplication.isRecording()) {
                         load.message(R.string.recording).simple().build();
                     } else {
                         notification.cancel(1);
@@ -226,15 +312,25 @@ public class RecordService extends Service {
         }
     }
 
-    private void sendEndRecording(){
-        Intent intent = new Intent("endRecording");
+    /**
+     * Notifies the RecordingFragment that the recording has stopped
+     */
+    private void sendEndRecording() {
+        Intent intent = new Intent(MyApplication.endRecordingFromRecordService);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }
 
-    private void sendUpdateMessage(String title, Long time) {
+    /**
+     * Sends the updated recording time to the RecordingFragment,
+     * or notifies the RecordingFragment that the database has grown or shrunk
+     *
+     * @param title The intent message
+     * @param value The recording time, or unused if it concerns the database
+     */
+    private void sendUpdateMessage(String title, Long value) {
         Intent intent = new Intent(title);
-        if (time != null) {
-            intent.putExtra("time", time);
+        if (value != null) {
+            intent.putExtra("value", value);
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }

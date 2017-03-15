@@ -14,6 +14,8 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
+import com.cstb.vigiphone3.data.database.MyApplication;
+
 public class LocationService extends Service implements LocationListener {
 
     private LocationManager locationManager;
@@ -29,6 +31,10 @@ public class LocationService extends Service implements LocationListener {
         Log.d("LocationService", "Service started");
     }
 
+    /**
+     * {@inheritDoc}
+     * Initializes the location if permission is given
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -36,15 +42,19 @@ public class LocationService extends Service implements LocationListener {
             previousLocation = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
         }
-        if(previousLocation!= null) {
+        if (previousLocation != null) {
             sendMessageToActivity(previousLocation);
         }
         return Service.START_STICKY;
     }
 
+    /**
+     * {@inheritDoc}
+     * Sends the location to the ServiceManager if it's better than the last one
+     */
     @Override
     public void onLocationChanged(Location location) {
-        if(isBetterLocation(location, previousLocation)){
+        if (isBetterLocation(location, previousLocation)) {
             previousLocation = location;
             sendMessageToActivity(location);
         }
@@ -73,9 +83,16 @@ public class LocationService extends Service implements LocationListener {
         }
     }
 
-    protected boolean isBetterLocation(Location location, Location currentBestLocation){
+    /**
+     * Checks whether or not the new location is better than the previous one
+     *
+     * @param location            The new location
+     * @param currentBestLocation The last best location registered
+     * @return True if it is, false otherwise
+     */
+    protected boolean isBetterLocation(Location location, Location currentBestLocation) {
 
-        if(currentBestLocation == null){
+        if (currentBestLocation == null) {
             // A new location is always better than no location
             return true;
         }
@@ -87,10 +104,10 @@ public class LocationService extends Service implements LocationListener {
         boolean isNewer = timeDelta > 0;
 
         // If it's been more than 2 minutes since the current location, use the new one
-        if(isSignificantlyNewer){
+        if (isSignificantlyNewer) {
             return true;
-        //If the new location is more than 2 minutes older, it must be worse
-        }else if(isSignificantlyOlder){
+            //If the new location is more than 2 minutes older, it must be worse
+        } else if (isSignificantlyOlder) {
             return false;
         }
 
@@ -104,26 +121,37 @@ public class LocationService extends Service implements LocationListener {
         boolean isFromSameProvider = isSameProvider(location.getProvider(), currentBestLocation.getProvider());
 
         // Determine location quality by combining timeliness and accuracy
-        if(isMoreAccurate){
+        if (isMoreAccurate) {
             return true;
-        } else if(isNewer && !isLessAccurate){
+        } else if (isNewer && !isLessAccurate) {
             return true;
-        } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider){
+        } else if (isNewer && !isSignificantlyLessAccurate && isFromSameProvider) {
             return true;
         }
 
         return false;
     }
 
-    private boolean isSameProvider(String provider1, String provider2){
-        if(provider1 == null){
+    /**
+     * Checks if the two locations come from the same provider
+     *
+     * @param provider1 The first location
+     * @param provider2 The second location
+     * @return True if they do, false otherwise
+     */
+    private boolean isSameProvider(String provider1, String provider2) {
+        if (provider1 == null) {
             return provider2 == null;
         }
         return provider1.equals(provider2);
     }
 
-    public void sendMessageToActivity(Location location){
-        Intent intent = new Intent("LocationChanged");
+    /**
+     * Sends the location to the ServiceManager
+     * @param location The location to send
+     */
+    public void sendMessageToActivity(Location location) {
+        Intent intent = new Intent(MyApplication.locationChangedFromLocationService);
         intent.putExtra("value", location);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
     }

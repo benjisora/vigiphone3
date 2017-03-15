@@ -6,6 +6,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 
+import com.cstb.vigiphone3.data.model.Emitter;
 import com.cstb.vigiphone3.data.model.RecordingRow;
 import com.cstb.vigiphone3.data.model.RecordingRow_Table;
 import com.raizlabs.android.dbflow.sql.language.SQLite;
@@ -29,6 +30,17 @@ public class Utils {
                 .from(RecordingRow.class)
                 .queryList();
     }
+
+    public List<Emitter> getAllEmitters(){
+        return SQLite.select()
+                .from(Emitter.class)
+                .queryList();
+    }
+
+    public long getEmittersCount(){
+        return SQLite.selectCountOf().from(Emitter.class).count();
+    }
+
 
     public long getRecordingRowsCount(){
         return SQLite.selectCountOf().from(RecordingRow.class).count();

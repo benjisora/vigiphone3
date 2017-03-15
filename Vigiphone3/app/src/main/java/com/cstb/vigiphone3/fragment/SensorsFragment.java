@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.afollestad.materialdialogs.MaterialDialog;
 import com.cstb.vigiphone3.R;
+import com.cstb.vigiphone3.data.database.MyApplication;
 import com.cstb.vigiphone3.data.model.RecordingRow;
 import com.cstb.vigiphone3.service.SensorService;
 
@@ -30,10 +31,12 @@ import butterknife.BindView;
 import butterknife.ButterKnife;
 import butterknife.OnClick;
 
+/**
+ * SensorFragment class, used to display each value from the phone's sensors
+ */
 public class SensorsFragment extends Fragment {
 
     //region view bindings
-
     @BindView(R.id.cidlac_text)
     TextView cidLacText;
 
@@ -75,13 +78,16 @@ public class SensorsFragment extends Fragment {
 
     @BindView(R.id.orientation_text)
     TextView orientationText;
-
     //endregion
 
-    private int cidTapCount = 0;
+    private long cidTapCount = 0;
     private RecordingRow recordingRow;
     private SharedPreferences SP;
 
+    /**
+     * Updates the location, the data fetching,
+     * and/or refreshes the map whenever the order is received
+     */
     private BroadcastReceiver mUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -93,9 +99,12 @@ public class SensorsFragment extends Fragment {
     public SensorsFragment() {
     }
 
+    /**
+     * Calibrates the sensors so that the noise lessens
+     */
     @OnClick(R.id.calibrate_button)
-    public void calibrateButton(){
-        if(!SP.getBoolean("modeCalibrate",false)){
+    public void calibrateButton() {
+        if (!SP.getBoolean("modeCalibrate", false)) {
 
             final MaterialDialog dialog = new MaterialDialog.Builder(getActivity())
                     .title(R.string.please_wait_title)
@@ -126,31 +135,41 @@ public class SensorsFragment extends Fragment {
                 }
             }, 2000); //ms
 
-        }else{
-            Toast.makeText(getActivity(),"Already calibrated", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getActivity(), "Already calibrated", Toast.LENGTH_SHORT).show();
         }
     }
 
+    /**
+     * Decalibrates the sensors
+     */
     @OnClick(R.id.uncalibrate_button)
-    public void uncalibrateButton(){
-        if(SP.getBoolean("modeCalibrate",false)){
+    public void uncalibrateButton() {
+        if (SP.getBoolean("modeCalibrate", false)) {
             SP.edit().putBoolean("modeCalibrate", false).apply();
             SP.edit().putBoolean("hasCalibrated", false).apply();
-        }else{
-            Toast.makeText(getActivity(),"No calibration done", Toast.LENGTH_SHORT).show();
+        } else {
+            Toast.makeText(getActivity(), "No calibration done", Toast.LENGTH_SHORT).show();
         }
     }
 
+    /**
+     * {@inheritDoc}
+     * Initializes the view and registers the receivers
+     */
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_sensor, container, false);
         ButterKnife.bind(this, view);
         SP = PreferenceManager.getDefaultSharedPreferences(getActivity().getBaseContext());
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mUpdateReceiver, new IntentFilter("UpdateView"));
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mUpdateReceiver, new IntentFilter(MyApplication.updateViewFromServiceManager));
         return view;
     }
 
+    /**
+     * Updates the view to match the newly received RecordingRow
+     */
     public void updateAccordingView() {
         changeCidDisplay();
         String text;
@@ -179,7 +198,7 @@ public class SensorsFragment extends Fragment {
         proximityText.setText(text);
 
         float[] orientation = getOrientationFromSensors();
-        if(orientation!=null){
+        if (orientation != null) {
             text = String.valueOf((int) Math.toDegrees(orientation[0])) + " / "
                     + String.valueOf((int) Math.toDegrees(orientation[1])) + " / "
                     + String.valueOf((int) Math.toDegrees(orientation[2]));
@@ -187,13 +206,17 @@ public class SensorsFragment extends Fragment {
         }
     }
 
-    private float[] getOrientationFromSensors(){
+    /**
+     * Calculates the phone orientation from the sensors
+     * @return The orientation if calculated
+     */
+    private float[] getOrientationFromSensors() {
         float[] accelerometer = {recordingRow.getAccelerometerX(), recordingRow.getAccelerometerY(), recordingRow.getAccelerometerZ()};
         float[] gyroscope = {recordingRow.getGyroscopeX(), recordingRow.getGyroscopeY(), recordingRow.getGyroscopeZ()};
         float[] R = new float[9];
-        if(accelerometer!= null && gyroscope != null){
+        if (accelerometer != null && gyroscope != null) {
             float orientation[] = new float[3];
-            if(SensorManager.getRotationMatrix(R, new float[3], accelerometer, gyroscope)){
+            if (SensorManager.getRotationMatrix(R, new float[3], accelerometer, gyroscope)) {
                 SensorManager.getOrientation(R, orientation);
                 return orientation;
             }
@@ -201,14 +224,20 @@ public class SensorsFragment extends Fragment {
         return null;
     }
 
+    /**
+     * Counts each time the display has changed, and rewrites the CellID
+     */
     @OnClick({R.id.cidlac_label, R.id.cidlac_text})
     public void changeDisplay() {
         cidTapCount++;
         changeCidDisplay();
     }
 
+    /**
+     * Changes the CellID display
+     */
     private void changeCidDisplay() {
-        switch (cidTapCount % 3) {
+        switch ((int)cidTapCount % 3) {
             case 0:
                 cidLacText.setText(String.valueOf(recordingRow.getCID()) + "/" + String.valueOf(recordingRow.getLAC()));
                 break;
@@ -232,7 +261,7 @@ public class SensorsFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d("SensorFragment", "updateReceiver registered again");
-        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mUpdateReceiver, new IntentFilter("UpdateView"));
+        LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mUpdateReceiver, new IntentFilter(MyApplication.updateViewFromServiceManager));
     }
 
     @Override

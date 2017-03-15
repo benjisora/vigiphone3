@@ -9,6 +9,7 @@ import android.location.Location;
 import android.os.Build;
 import android.support.v4.content.LocalBroadcastManager;
 
+import com.cstb.vigiphone3.data.database.MyApplication;
 import com.cstb.vigiphone3.data.model.RecordingRow;
 
 import java.text.SimpleDateFormat;
@@ -25,6 +26,9 @@ public class ServiceManager {
     private float light, proximity;
     private Context context;
 
+    /**
+     * Updates the sensors and sends them to the SensorsFragment whenever the order is received
+     */
     private BroadcastReceiver mSensorReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -51,25 +55,37 @@ public class ServiceManager {
                     }
                     break;
             }
-            sendUpdateMessage();
+            sendUpdateMessage(MyApplication.updateViewFromServiceManager);
         }
     };
 
+    /**
+     * Saves the recording row to the database whenever the order is received
+     */
     private BroadcastReceiver mSaveRecordingRow = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            saveRecordingRow((long) intent.getExtras().get("time"));
+            saveRecordingRow((long) intent.getExtras().get("value"));
         }
     };
 
+    /**
+     * Updates the location and sends it to the SensorsFragment and the MapsFragment
+     * whenever the order is received
+     */
     private BroadcastReceiver mLocationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             location = (Location) intent.getExtras().get("value");
-            sendUpdateMessage();
+            sendUpdateMessage(MyApplication.updateViewFromServiceManager);
+            sendUpdateMessage(MyApplication.updateMarkerFromServiceManager);
         }
     };
 
+    /**
+     * Updates the emitter data and sends them to the SensorsFragment and the MapsFragment
+     * whenever the order is received
+     */
     private BroadcastReceiver mSignalReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -82,10 +98,16 @@ public class ServiceManager {
             networkType = (String) intent.getExtras().get("type");
             neighbours = (String) intent.getExtras().get("neighbours");
             strength = (int) intent.getExtras().get("strength");
-            sendUpdateMessage();
+            sendUpdateMessage(MyApplication.updateViewFromServiceManager);
+            sendUpdateMessage(MyApplication.updateMarkerFromServiceManager);
         }
     };
 
+    /**
+     * Initializes each value
+     *
+     * @param activityContext The caller's context
+     */
     public ServiceManager(Context activityContext) {
         context = activityContext;
         cid = lac = mcc = mnc = strength = 0;
@@ -93,9 +115,13 @@ public class ServiceManager {
         location = null;
         accelerometer = gyroscope = magneticField = new float[]{0, 0, 0};
         light = proximity = 0;
-
     }
 
+    /**
+     * Initializes the given RecordingRow with the most recent values received
+     *
+     * @param recordingRow The row to initialize
+     */
     private void initializeRecordingRow(RecordingRow recordingRow) {
 
         recordingRow.setCID(cid);
@@ -124,6 +150,11 @@ public class ServiceManager {
 
     }
 
+    /**
+     * Saves the RecordingRow to the database
+     *
+     * @param time The recording time of this precise row
+     */
     private void saveRecordingRow(Long time) {
 
         SimpleDateFormat dateformat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.ENGLISH);
@@ -135,29 +166,43 @@ public class ServiceManager {
         rec.setImei(deviceId);
         rec.setDate(dateformat.format(date));
         rec.setModel(Build.MODEL);
+
+        rec.setTableName(MyApplication.getRecordingTableName());
+
         rec.save();
     }
 
+    /**
+     * Starts the mutliple services
+     */
     public void startServices() {
         context.startService(new Intent(context, SensorService.class));
         context.startService(new Intent(context, SignalService.class));
         context.startService(new Intent(context, LocationService.class));
     }
 
+    /**
+     * Stops the multiple services
+     */
     public void stopServices() {
         context.stopService(new Intent(context, SensorService.class));
         context.stopService(new Intent(context, SignalService.class));
         context.stopService(new Intent(context, LocationService.class));
     }
 
+    /**
+     * Registers the listeners
+     */
     public void registerReceivers() {
-        LocalBroadcastManager.getInstance(context).registerReceiver(mLocationReceiver, new IntentFilter("LocationChanged"));
-        LocalBroadcastManager.getInstance(context).registerReceiver(mSensorReceiver, new IntentFilter("SensorChanged"));
-        LocalBroadcastManager.getInstance(context).registerReceiver(mSignalReceiver, new IntentFilter("SignalChanged"));
-        LocalBroadcastManager.getInstance(context).registerReceiver(mSaveRecordingRow, new IntentFilter("saveRecordingRow"));
-
+        LocalBroadcastManager.getInstance(context).registerReceiver(mLocationReceiver, new IntentFilter(MyApplication.locationChangedFromLocationService));
+        LocalBroadcastManager.getInstance(context).registerReceiver(mSensorReceiver, new IntentFilter(MyApplication.sensorChangedFromSensorService));
+        LocalBroadcastManager.getInstance(context).registerReceiver(mSignalReceiver, new IntentFilter(MyApplication.signalChangedFromSignalService));
+        LocalBroadcastManager.getInstance(context).registerReceiver(mSaveRecordingRow, new IntentFilter(MyApplication.saveRowFromRecordService));
     }
 
+    /**
+     * Unregisters the listeners
+     */
     public void unregisterReceivers() {
         LocalBroadcastManager.getInstance(context).unregisterReceiver(mLocationReceiver);
         LocalBroadcastManager.getInstance(context).unregisterReceiver(mSensorReceiver);
@@ -165,11 +210,16 @@ public class ServiceManager {
         LocalBroadcastManager.getInstance(context).unregisterReceiver(mSaveRecordingRow);
     }
 
-    private void sendUpdateMessage() {
+    /**
+     * Sends the RecordingRow to the SensorsFragment or the MapsFragment
+     * depending on the intent message
+     *
+     * @param message The intent message
+     */
+    private void sendUpdateMessage(String message) {
         RecordingRow rec = new RecordingRow();
         initializeRecordingRow(rec);
-
-        Intent intent = new Intent("UpdateView");
+        Intent intent = new Intent(message);
         intent.putExtra("row", rec);
         LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
     }

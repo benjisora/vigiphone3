@@ -12,32 +12,35 @@ import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
-/** Service listening for the Cell Infos, and notifying the ServiceManger when needed */
+import com.cstb.vigiphone3.data.database.MyApplication;
+
+/**
+ * Service listening for the Cell Infos, and notifying the ServiceManger when needed
+ */
 public class SensorService extends Service implements SensorEventListener {
 
-    private SensorManager sensorManager;
     private static float[] accelerometerMax = {1000, 1000, 1000};
     private static float[] accelerometerMin = {1000, 1000, 1000};
     private static float[] gyroscopeMax = {1000, 1000, 1000};
     private static float[] gyroscopeMin = {1000, 1000, 1000};
     private static float[] magneticFieldMax = {1000, 1000, 1000};
     private static float[] magneticFieldMin = {1000, 1000, 1000};
-
+    private SensorManager sensorManager;
     private SharedPreferences SP;
 
-    /** {@inheritDoc} */
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
 
-    /** {@inheritDoc} */
     @Override
     public void onCreate() {
         Log.d("SensorService", "Service started");
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
@@ -48,7 +51,7 @@ public class SensorService extends Service implements SensorEventListener {
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * Gets the value from the sensors, calibrates it if needed,
      * and sends the value to ServiceManager.
      */
@@ -178,43 +181,8 @@ public class SensorService extends Service implements SensorEventListener {
     }
 
     /**
-     * Sets and sends the calibrated data if the mode is enabled.
-     *
-     * @param sensorEvent the sensor object gotten from the Listener.
+     * Calibrates the sensor value.
      */
-    private void sendCalibratedData(SensorEvent sensorEvent) {
-
-        float calibratedDa = SP.getFloat("calibratedDa", 1);
-        float calibratedDg = SP.getFloat("calibratedDg", 1);
-        float calibratedDm = SP.getFloat("calibratedDm", 1);
-
-        float[] value;
-        switch (sensorEvent.sensor.getType()) {
-            case Sensor.TYPE_ACCELEROMETER:
-                value = new float[]{Math.round(sensorEvent.values[0] / calibratedDa) * calibratedDa,
-                        Math.round(sensorEvent.values[1] / calibratedDa) * calibratedDa,
-                        Math.round(sensorEvent.values[2] / calibratedDa) * calibratedDa};
-                sendMessageToActivity(sensorEvent.sensor.getType(), value);
-                break;
-            case Sensor.TYPE_GYROSCOPE:
-                value = new float[]{Math.round(sensorEvent.values[0] / calibratedDg) * calibratedDg,
-                        Math.round(sensorEvent.values[1] / calibratedDg) * calibratedDg,
-                        Math.round(sensorEvent.values[2] / calibratedDg) * calibratedDg};
-                sendMessageToActivity(sensorEvent.sensor.getType(), value);
-                break;
-            case Sensor.TYPE_MAGNETIC_FIELD:
-                value = new float[]{Math.round(sensorEvent.values[0] / calibratedDm) * calibratedDm,
-                        Math.round(sensorEvent.values[1] / calibratedDm) * calibratedDm,
-                        Math.round(sensorEvent.values[2] / calibratedDm) * calibratedDm};
-                sendMessageToActivity(sensorEvent.sensor.getType(), value);
-                break;
-            default:
-                sendMessageToActivity(sensorEvent.sensor.getType(), sensorEvent.values);
-                break;
-        }
-    }
-
-    /** Calibrates the sensor value. */
     public static float calibrate(float f) {
         float result;
         boolean b = false;
@@ -302,19 +270,56 @@ public class SensorService extends Service implements SensorEventListener {
         return dm;
     }
 
-    /** {@inheritDoc} */
+    /**
+     * Sets and sends the calibrated data if the mode is enabled.
+     *
+     * @param sensorEvent the sensor object gotten from the Listener.
+     */
+    private void sendCalibratedData(SensorEvent sensorEvent) {
+
+        float calibratedDa = SP.getFloat("calibratedDa", 1);
+        float calibratedDg = SP.getFloat("calibratedDg", 1);
+        float calibratedDm = SP.getFloat("calibratedDm", 1);
+
+        float[] value;
+        switch (sensorEvent.sensor.getType()) {
+            case Sensor.TYPE_ACCELEROMETER:
+                value = new float[]{Math.round(sensorEvent.values[0] / calibratedDa) * calibratedDa,
+                        Math.round(sensorEvent.values[1] / calibratedDa) * calibratedDa,
+                        Math.round(sensorEvent.values[2] / calibratedDa) * calibratedDa};
+                sendMessageToActivity(sensorEvent.sensor.getType(), value);
+                break;
+            case Sensor.TYPE_GYROSCOPE:
+                value = new float[]{Math.round(sensorEvent.values[0] / calibratedDg) * calibratedDg,
+                        Math.round(sensorEvent.values[1] / calibratedDg) * calibratedDg,
+                        Math.round(sensorEvent.values[2] / calibratedDg) * calibratedDg};
+                sendMessageToActivity(sensorEvent.sensor.getType(), value);
+                break;
+            case Sensor.TYPE_MAGNETIC_FIELD:
+                value = new float[]{Math.round(sensorEvent.values[0] / calibratedDm) * calibratedDm,
+                        Math.round(sensorEvent.values[1] / calibratedDm) * calibratedDm,
+                        Math.round(sensorEvent.values[2] / calibratedDm) * calibratedDm};
+                sendMessageToActivity(sensorEvent.sensor.getType(), value);
+                break;
+            default:
+                sendMessageToActivity(sensorEvent.sensor.getType(), sensorEvent.values);
+                break;
+        }
+    }
+
     @Override
     public void onAccuracyChanged(Sensor sensor, int i) {
     }
 
-    /** {@inheritDoc} */
     @Override
     public void onDestroy() {
         Log.d("SensorService", "Service stopped");
         sensorManager.unregisterListener(this);
     }
 
-    
+    /**
+     * Registers to the different kinds of sensors
+     */
     public void listenToAllSensors() {
         listenToSensorIfChecked(Sensor.TYPE_ACCELEROMETER);
         listenToSensorIfChecked(Sensor.TYPE_GYROSCOPE);
@@ -323,6 +328,11 @@ public class SensorService extends Service implements SensorEventListener {
         listenToSensorIfChecked(Sensor.TYPE_PROXIMITY);
     }
 
+    /**
+     * Registers to a sensor if it's checked from the Settings screen
+     *
+     * @param sensor The type of sensor to register
+     */
     public void listenToSensorIfChecked(int sensor) {
         SharedPreferences SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         switch (sensor) {
@@ -359,8 +369,14 @@ public class SensorService extends Service implements SensorEventListener {
         }
     }
 
+    /**
+     * Sends the new sensor change to SensorFragment,
+     *
+     * @param type  The type of sensor that changed
+     * @param value The sensor values
+     */
     public void sendMessageToActivity(int type, float[] value) {
-        Intent intent = new Intent("SensorChanged");
+        Intent intent = new Intent(MyApplication.sensorChangedFromSensorService);
         intent.putExtra("type", type);
         intent.putExtra("value", value);
         LocalBroadcastManager.getInstance(this).sendBroadcast(intent);

@@ -28,7 +28,9 @@ import permission.auron.com.marshmallowpermissionhelper.ActivityManagePermission
 import permission.auron.com.marshmallowpermissionhelper.PermissionResult;
 import permission.auron.com.marshmallowpermissionhelper.PermissionUtils;
 
-/** Handles the NavigationDrawer, the permissions, and the serviceManager. */
+/**
+ * Handles the NavigationDrawer, the permissions, and the serviceManager.
+ */
 public class MainActivity extends ActivityManagePermission
         implements NavigationView.OnNavigationItemSelectedListener {
 
@@ -45,7 +47,7 @@ public class MainActivity extends ActivityManagePermission
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * Asks for permissions if not already given.
      */
     @Override
@@ -103,7 +105,7 @@ public class MainActivity extends ActivityManagePermission
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * Makes sure the app isn't killed if back button is pressed.
      */
     @Override
@@ -117,7 +119,7 @@ public class MainActivity extends ActivityManagePermission
 
     /**
      * {@inheritDoc}
-     *
+     * <p>
      * Selects the right Fragment to load.
      */
     @Override
@@ -139,8 +141,8 @@ public class MainActivity extends ActivityManagePermission
                 fragmentClass = MapsFragment.class;
                 break;
             //case R.id.nav_camera:
-                //toolbar.setTitle("Camera");
-                //fragmentClass = RecordingFragment.class;
+            //toolbar.setTitle("Camera");
+            //fragmentClass = RecordingFragment.class;
             //break;
             case R.id.nav_settings:
                 intent = new Intent(MainActivity.this, SettingsActivity.class);
@@ -158,7 +160,11 @@ public class MainActivity extends ActivityManagePermission
         return true;
     }
 
-    /** Tries to load the correct fragment. */
+    /**
+     * Tries to load the correct fragment
+     *
+     * @param c The Fragment Class to load
+     */
     public void loadFragment(Class c) {
         try {
             Fragment fragment = null;
@@ -176,7 +182,12 @@ public class MainActivity extends ActivityManagePermission
         }
     }
 
-    /** Displays a dialog asking to enable permissions. */
+    /**
+     * Displays a dialog asking to enable permissions
+     *
+     * @param title The dialog's title
+     * @param text  The dialog's content
+     */
     private void askForNeededPermissions(String title, String text) {
         new MaterialDialog.Builder(this)
                 .title(title)
@@ -207,7 +218,12 @@ public class MainActivity extends ActivityManagePermission
                 .show();
     }
 
-    /** Displays a dialog asking to enable the disabled permissions through Settings. */
+    /**
+     * Displays a dialog asking to enable the disabled permissions through Settings
+     *
+     * @param title The dialog's title
+     * @param text  The dialog's content
+     */
     private void showPermissionDialogDenied(String title, String text) {
         new MaterialDialog.Builder(this)
                 .title(title)
