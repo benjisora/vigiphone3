@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.LocalBroadcastManager;
@@ -22,6 +23,8 @@ import com.cstb.vigiphone3.data.model.Lambert;
 import com.cstb.vigiphone3.data.model.RecordingRow;
 import com.cstb.vigiphone3.network.NetworkService;
 import com.mapbox.mapboxsdk.annotations.MarkerOptions;
+import com.mapbox.mapboxsdk.camera.CameraPosition;
+import com.mapbox.mapboxsdk.camera.CameraUpdateFactory;
 import com.mapbox.mapboxsdk.constants.Style;
 import com.mapbox.mapboxsdk.geometry.LatLng;
 import com.mapbox.mapboxsdk.maps.MapView;
@@ -52,7 +55,7 @@ public class MapsFragment extends Fragment {
     private List<Emitter> emitters;
     private RecordingRow rec;
     private LatLng center;
-    private LatLng distance;
+    private Double distanceLatitude, distanceLongitude;
     private double[] boundaries;
 
     /**
@@ -61,12 +64,15 @@ public class MapsFragment extends Fragment {
     private BroadcastReceiver mUpdateRowReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.d("MapsFragment", "received row from broadcast");
             rec = (RecordingRow) intent.getExtras().get("row");
-            if (rec == null) {
+            requestAntennas();
+
+            /*if (rec == null) {
                 requestAntennas();
             } else {
                 refreshMap();
-            }
+            }*/
 
         }
     };
@@ -80,7 +86,6 @@ public class MapsFragment extends Fragment {
         View rootView = inflater.inflate(R.layout.fragment_map, container, false);
         ButterKnife.bind(this, rootView);
         center = new LatLng();
-        distance = new LatLng();
 
         LocalBroadcastManager.getInstance(getActivity()).registerReceiver(mUpdateRowReceiver, new IntentFilter(MyApplication.updateMarkerFromServiceManager));
         boundaries = new double[4];
@@ -191,9 +196,10 @@ public class MapsFragment extends Fragment {
 
     /**
      * Calculates the pass loss
-     * @param XYemitter The emitter's coordinates
+     *
+     * @param XYemitter      The emitter's coordinates
      * @param azimut_emitter The emitter's azimuth
-     * @param XYphone The phone's coordinates
+     * @param XYphone        The phone's coordinates
      * @return The pass loss value
      */
     private Double CalculatePassLoss(Double[] XYemitter, int azimut_emitter, Double[] XYphone) {
@@ -210,7 +216,11 @@ public class MapsFragment extends Fragment {
      * Makes a call to the server to receive the visible emitters
      */
     private void requestAntennas() {
+
         if (rec != null) {
+
+            Log.d("MapsFragment", "RequestAntenna called, rec not null");
+
             calculateScreenEdgesCoordinates();
             networkService = MyApplication.getNetworkServiceInstance();
             getAntennas = networkService.getEmitters(MyApplication.getEmittersTableName(), rec.getCID(), rec.getLAC(), rec.getMCC(), rec.getMNC(), rec.getType(), boundaries[0], boundaries[1], boundaries[2], boundaries[3]);
@@ -221,13 +231,17 @@ public class MapsFragment extends Fragment {
                     if (response.code() == HttpURLConnection.HTTP_OK) {
 
                         Emitters emitterList = response.body();
-                        for (Emitter e : emitterList.list) {
-                            e.save();
+
+                        if (emitterList.list != null && !emitterList.list.isEmpty()) {
+                            for (Emitter e : emitterList.list) {
+                                e.save();
+                            }
+                        } else {
+                            Log.e("RecordService", "Server returned no emitters");
                         }
                         emitters = Utils.getinstance().getAllEmitters();
-
                     } else {
-                        Log.d("RecordService", "Error code " + String.valueOf(response.code()) + ", address : " + call.request().url());
+                        Log.e("RecordService", "Error code " + String.valueOf(response.code()) + ", address : " + call.request().url());
                     }
                     refreshMap();
                 }
@@ -252,26 +266,37 @@ public class MapsFragment extends Fragment {
         googleMap.getUiSettings().setTiltGesturesEnabled(false);
         googleMap.setStyleUrl(Style.MAPBOX_STREETS);
         googleMap.setMyLocationEnabled(true);
+
+        Location userLocation = googleMap.getMyLocation();
+
+        if (userLocation != null) {
+            CameraPosition position = new CameraPosition.Builder()
+                    .target(new LatLng(userLocation.getLatitude(), userLocation.getLatitude()))
+                    .zoom(14)
+                    .build();
+
+            googleMap.animateCamera(CameraUpdateFactory.newCameraPosition(position));
+        }
     }
 
     /**
      * Calculates the visible edges of the map in coordinates
      */
     private void calculateScreenEdgesCoordinates() {
-        center.setLatitude(googleMap.getProjection().getVisibleRegion().latLngBounds.getCenter().getLatitude());
-        center.setLongitude(googleMap.getProjection().getVisibleRegion().latLngBounds.getCenter().getLongitude());
+        double centerLatitude = googleMap.getProjection().getVisibleRegion().latLngBounds.getCenter().getLatitude();
+        double centerLongitude = googleMap.getProjection().getVisibleRegion().latLngBounds.getCenter().getLongitude();
 
         double latitudeNorth = googleMap.getProjection().getVisibleRegion().latLngBounds.getLatNorth();
         double longitudeEast = googleMap.getProjection().getVisibleRegion().latLngBounds.getLonEast();
 
-        distance.setLatitude(Math.abs(center.getLatitude() - latitudeNorth) * 2);
-        distance.setLongitude(Math.abs(center.getLongitude() - longitudeEast) * 2);
+        distanceLatitude = Math.abs(center.getLatitude() - latitudeNorth) * 2;
+        distanceLongitude = Math.abs(center.getLongitude() - longitudeEast) * 2;
 
-        boundaries[0] = center.getLatitude() + distance.getLatitude();
-        boundaries[1] = center.getLatitude() - distance.getLatitude();
-        boundaries[2] = center.getLongitude() + distance.getLongitude();
-        boundaries[3] = center.getLongitude() - distance.getLongitude();
 
+        boundaries[0] = centerLatitude + distanceLatitude;
+        boundaries[1] = centerLatitude - distanceLatitude;
+        boundaries[2] = centerLongitude + distanceLongitude;
+        boundaries[3] = centerLongitude - distanceLongitude;
     }
 
     @Override

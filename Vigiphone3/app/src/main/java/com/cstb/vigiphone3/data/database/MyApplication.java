@@ -27,7 +27,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
  */
 public class MyApplication extends Application {
 
-    private static List<List<Icon>> icons;
+    private static ArrayList<List<Icon>> icons;
     private static Retrofit retrofit;
     private static String url;
     private static SharedPreferences SP;
@@ -54,7 +54,7 @@ public class MyApplication extends Application {
         SP = PreferenceManager.getDefaultSharedPreferences(getBaseContext());
         url = SP.getString("url", "https://32a77ce1.ngrok.io/");
         FlowManager.init(new FlowConfig.Builder(this).build());
-        icons = null;
+        icons = new ArrayList<>();
         loadIcons(this.getApplicationContext());
     }
 
@@ -195,7 +195,7 @@ public class MyApplication extends Application {
     }
 
     public static String getEmittersTableName() {
-        return SP.getString("MapTable", "emitters_table");
+        return SP.getString("MapTable", "TABLE_EMITTERS_NANTES_CSTB");
     }
 
     //endregion

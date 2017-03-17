@@ -27,6 +27,7 @@
     <application
         android:name=".data.database.MyApplication"
         android:allowBackup="true"
+        android:largeHeap="true"
         android:icon="@mipmap/appicon"
         android:label="@string/app_name"
         android:supportsRtl="true"
